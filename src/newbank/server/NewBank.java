@@ -15,6 +15,8 @@ public class NewBank {
 	private void addTestData() {
 		Customer bhagy = new Customer();
 		bhagy.addAccount(new Account("Main", 1000.0));
+		bhagy.addAccount(new Account("Second", 2000.0));
+		bhagy.addAccount(new Account("very long string of accounts", 3000000.0));
 		customers.put("Bhagy", bhagy);
 		
 		Customer christina = new Customer();
