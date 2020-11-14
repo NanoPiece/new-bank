@@ -14,4 +14,8 @@ public class Account {
 		return (accountName + ": " + openingBalance);
 	}
 
+	// Getters functions
+	public String getAccountName() { return (accountName); }
+	public double getOpeningBalance() { return (openingBalance); }
+
 }
