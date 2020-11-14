@@ -9,7 +9,8 @@ public class Customer {
 	public Customer() {
 		accounts = new ArrayList<>();
 	}
-	
+
+	// Return the list of accounts of a customer as a string
 	public String accountsToString() {
 		String accountNameHeading = "Account Name";
 		String openingBalanceHeading = "Opening Balance";
