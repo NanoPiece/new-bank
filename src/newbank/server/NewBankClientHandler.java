@@ -22,9 +22,15 @@ public class NewBankClientHandler extends Thread{
 	public void run() {
 		// keep getting requests from the client and processing them
 		try {
+			// offer log in or create account
+			out.println("Log In");
+			out.println("Create Account");
+			String customerAction = in.readLine();
 			// ask for user name
-			out.println("Enter Username");
-			String userName = in.readLine();
+			if (customerAction.toUpperCase().equals("LOG IN")) {
+				out.println("Enter Username");
+			}
+				String userName = in.readLine();
 			// ask for password
 			out.println("Enter Password");
 			String password = in.readLine();
