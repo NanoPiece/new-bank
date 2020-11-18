@@ -1,11 +1,12 @@
 package newbank.server;
 
+import java.io.IOException;
 import java.util.HashMap;
 
 public class NewBank {
-	
+
 	private static final NewBank bank = new NewBank();
-	private HashMap<String,Customer> customers;
+	public HashMap<String,Customer> customers;
 	
 	private NewBank() {
 		customers = new HashMap<>();
@@ -40,10 +41,11 @@ public class NewBank {
 	}
 
 	// commands from the NewBank customer are processed in this method
-	public synchronized String processRequest(CustomerID customer, String request) {
+	public synchronized String processRequest(CustomerID customer, String request) throws IOException {
 		if(customers.containsKey(customer.getKey())) {
 			switch(request) {
 			case "SHOWMYACCOUNTS" : return showMyAccounts(customer);
+			case "CREATENEWACCOUNT" : return createNewAccount(customer);
 			default : return "FAIL";
 			}
 		}
@@ -54,4 +56,10 @@ public class NewBank {
 		return (customers.get(customer.getKey())).accountsToString();
 	}
 
-}
+	private String createNewAccount(CustomerID customer) {
+		NewBankClientHandler clientHandler = new NewBankClientHandler();
+		clientHandler.createNewAccount(customer);
+		return ("Account Created");
+	}
+
+	}

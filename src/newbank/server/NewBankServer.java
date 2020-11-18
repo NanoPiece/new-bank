@@ -3,6 +3,7 @@ package newbank.server;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.io.BufferedReader;
 
 public class NewBankServer extends Thread{
 	
