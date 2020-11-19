@@ -54,7 +54,6 @@ public class ExampleClient extends Thread{
 	}
 
 	public static void main(String[] args) throws UnknownHostException, IOException, InterruptedException {
-		NewBank nb=new NewBank();
-		nb.run();
+		new ExampleClient("localhost",63341).start();
 	}
 }
