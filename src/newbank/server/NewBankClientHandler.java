@@ -33,14 +33,24 @@ public class NewBankClientHandler extends Thread{
 			CustomerID customer = bank.checkLogInDetails(userName, password);
 			// if the user is authenticated then get requests from the user and process them 
 			if(customer != null) {
-				String response = bank.processRequest(customer, "SHOWMYACCOUNTS");
-				out.println(response);
+				String dashboard = bank.processRequest(customer, "SHOWMYACCOUNTS");
+				out.println(dashboard);
 				out.println("Log In Successful. What do you want to do?");
 				while(true) {
 					String request = in.readLine();
-					System.out.println("Request from " + customer.getKey());
-					String responce = bank.processRequest(customer, request);
-					out.println(responce);
+					if (request.equals("CHANGEMYACCOUNTNAME")) {
+						out.println("Select the account you wish to edit (type in then name of your account).");
+						String accountName = in.readLine();
+						out.println("Please type in the new name for your selected account.");
+						String newAccountName = in.readLine();
+						request += "," + accountName + "," + newAccountName;
+						String response = bank.processRequest(customer, request);
+						out.println(response);
+					} else {
+						System.out.println("Request from " + customer.getKey());
+						String responce = bank.processRequest(customer, request);
+						out.println(responce);
+					}
 				}
 			}
 			else {
