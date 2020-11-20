@@ -1,6 +1,8 @@
 package newbank.server;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
 public class NewBank {
 	
@@ -42,8 +44,10 @@ public class NewBank {
 	// commands from the NewBank customer are processed in this method
 	public synchronized String processRequest(CustomerID customer, String request) {
 		if(customers.containsKey(customer.getKey())) {
-			switch(request) {
+			List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
+			switch(input.get(0)) {
 			case "SHOWMYACCOUNTS" : return showMyAccounts(customer);
+			case "CHANGEMYACCOUNTNAME" : return changeMyAccountName(customer, request);
 			default : return "FAIL";
 			}
 		}
@@ -54,4 +58,15 @@ public class NewBank {
 		return (customers.get(customer.getKey())).accountsToString();
 	}
 
+	private String changeMyAccountName(CustomerID customer, String request) {
+		// Convert request from String to List
+		// index: 0 = requestCommand, 1 = accountName, 2 = newAccountName
+		List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
+		// get account
+		Account account = customers.get(customer.getKey()).getAccount(input.get(1));
+		// change account name
+		account.setAccountName(input.get(2));
+
+		return "You account name has been modified.";
+	}
 }
