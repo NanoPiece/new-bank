@@ -1,5 +1,6 @@
 package newbank.server;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -46,9 +47,10 @@ public class NewBank {
 		if(customers.containsKey(customer.getKey())) {
 			List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
 			switch(input.get(0)) {
-			case "SHOWMYACCOUNTS" : return showMyAccounts(customer);
-			case "CHANGEMYACCOUNTNAME" : return changeMyAccountName(customer, request);
-			default : return "FAIL";
+				case "SHOWMYACCOUNTS" : return showMyAccounts(customer);
+				case "CHANGEMYACCOUNTNAME" : return changeMyAccountName(customer, request);
+				case "DISPLAYSELECTABLEACCOUNTS" : return displaySelectableAccounts(customer);
+				default : return "FAIL";
 			}
 		}
 		return "FAIL";
@@ -68,5 +70,15 @@ public class NewBank {
 		account.setAccountName(input.get(2));
 
 		return "You account name has been modified.";
+	}
+
+	private String displaySelectableAccounts(CustomerID customer) {
+		ArrayList<Account> accounts = customers.get(customer.getKey()).getAllAccounts();
+		String output = "";
+		for(int i=1; i<= accounts.size(); i++){
+			String account = accounts.get(i-1).getAccountName();
+			output += i + ". " + account + "\n";
+		}
+		return output;
 	}
 }
