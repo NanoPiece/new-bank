@@ -66,4 +66,8 @@ public class Customer {
 		}
 		return null;
 	}
+	
+	public ArrayList<Account> getAllAccounts() {
+		return accounts;
+	}
 }
