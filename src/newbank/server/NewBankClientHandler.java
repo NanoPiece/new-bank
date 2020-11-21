@@ -39,11 +39,42 @@ public class NewBankClientHandler extends Thread{
 				while(true) {
 					String request = in.readLine();
 					if (request.equals("CHANGEMYACCOUNTNAME")) {
-						out.println("Select the account you wish to edit (type in then name of your account).");
-						String accountName = in.readLine();
+						// Select and validate choice of account to change name
+						String selectableAccounts = bank.processRequest(customer, "DISPLAYSELECTABLEACCOUNTS");
+						if (selectableAccounts.equals("")){
+							out.println("You currently don't have any account at the moment");
+							continue;
+						}
+						out.println("Select the account you wish to edit.");
+						String option = "";
+						String[] listOfSelections = selectableAccounts.split("\\n");
+						boolean b = true;
+						while (b){
+							try{
+								out.println(selectableAccounts);
+								option = in.readLine();
+								option = option.trim();
+								while (Integer.parseInt(option) > listOfSelections.length ||
+										Integer.parseInt(option) <= 0){
+									out.println("Please select a valid option:");
+									out.println(selectableAccounts);
+									option = in.readLine();
+									option = option.trim();
+								}
+								b = false;
+							}catch (NumberFormatException ex) {
+								out.println("Please enter an integer only!");
+							}
+						}
+						// Retrieve selected account name
+						String accountName = listOfSelections[Integer.parseInt(option)-1].substring(
+								selectableAccounts.indexOf(". "));
+						accountName = accountName.substring(accountName.indexOf(" ")+1);
+						// Request new account name from user
 						out.println("Please type in the new name for your selected account.");
 						String newAccountName = in.readLine();
 						request += "," + accountName + "," + newAccountName;
+						// Send request to server and receive response
 						String response = bank.processRequest(customer, request);
 						out.println(response);
 					} else {
