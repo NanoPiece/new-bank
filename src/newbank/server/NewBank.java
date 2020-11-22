@@ -1,12 +1,14 @@
 package newbank.server;
 
 import java.util.HashMap;
-import java.util.Scanner;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class NewBank {
 
 	private static final NewBank bank = new NewBank();
-	private HashMap<String,Customer> customers;
+	public HashMap<String,Customer> customers;
 
 	private NewBank() {
 		customers = new HashMap<>();
@@ -43,12 +45,14 @@ public class NewBank {
 	// commands from the NewBank customer are processed in this method
 	public synchronized String processRequest(CustomerID customer, String request) {
 		if(customers.containsKey(customer.getKey())) {
-			switch(request) {
+			List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
+			switch(input.get(0)) {
 				case "1" : return showMyAccounts(customer);
 				case "2" : return "Transfer to external user Complete";
 				case "3" : return "Transfer to savings account Complete";
 				case "4" : return "Transfer to current account Complete";
 				case "5" : return "Thank you and have a nice day";
+				case "6" : return createNewAccount(customer, request);
 				default : return "FAIL";
 			}
 		}
@@ -57,6 +61,21 @@ public class NewBank {
 
 	private String showMyAccounts(CustomerID customer) {
 		return (customers.get(customer.getKey())).accountsToString();
+	}
+
+	private String createNewAccount(CustomerID customer, String request) {
+		List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
+		System.out.println(input.get(1));
+		String accountType = (input.get(1));
+		Customer thisCustomer = customers.get(customer.getKey());
+		if (accountType.equals("1")) {
+			accountType = "Current Account";
+		}
+		if (accountType.equals("2")) {
+			accountType = "Savings Account";
+		}
+		thisCustomer.addAccount(new Account(accountType, 00.0));
+		return "Account '" + accountType + "' Created.\n";
 	}
 
 	Customer getIndex(String newP)

@@ -1,6 +1,7 @@
 package newbank.server;
 
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class Customer {
@@ -62,4 +63,6 @@ public class Customer {
 	public void addAccount(Account account) {
 		accounts.add(account);
 	}
+
+
 }
