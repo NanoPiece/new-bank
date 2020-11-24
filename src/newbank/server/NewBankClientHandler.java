@@ -33,50 +33,66 @@ public class NewBankClientHandler extends Thread{
 			CustomerID customer = bank.checkLogInDetails(userName, password);
 			// if the user is authenticated then get requests from the user and process them 
 			if(customer != null) {
-				String dashboard = bank.processRequest(customer, "SHOWMYACCOUNTS");
-				out.println(dashboard);
+				//Customer current= bank.getIndex(userName);
 				out.println("Log In Successful. What do you want to do?");
 				while(true) {
+					out.println(showMenu());
 					String request = in.readLine();
-					if (request.equals("CHANGEMYACCOUNTNAME")) {
-						// Select and validate choice of account to change name
-						String selectableAccounts = bank.processRequest(customer, "DISPLAYSELECTABLEACCOUNTS");
-						if (selectableAccounts.equals("")){
-							out.println("You currently don't have any account at the moment");
-							continue;
-						}
-						out.println("Select the account you wish to edit.");
-						String option = "";
-						String[] listOfSelections = selectableAccounts.split("\\n");
-						boolean b = true;
-						while (b){
-							try{
-								out.println(selectableAccounts);
-								option = in.readLine();
-								option = option.trim();
-								while (Integer.parseInt(option) > listOfSelections.length ||
-										Integer.parseInt(option) <= 0){
-									out.println("Please select a valid option:");
-									out.println(selectableAccounts);
-									option = in.readLine();
-									option = option.trim();
-								}
-								b = false;
-							}catch (NumberFormatException ex) {
-								out.println("Please enter an integer only!");
-							}
-						}
-						// Retrieve selected account name
-						String accountName = listOfSelections[Integer.parseInt(option)-1].substring(
-								selectableAccounts.indexOf(". "));
-						accountName = accountName.substring(accountName.indexOf(" ")+1);
+					if (request.equals("1")){
+						String dashboard = bank.processRequest(customer, "1");
+						out.println(dashboard);
+					} else if (request.equals("2")){
+						out.println("Enter the Account that you want to change the name for:  ");
+						String accountName = SelectAccount(customer);
+
 						// Request new account name from user
 						out.println("Please type in the new name for your selected account.");
 						String newAccountName = in.readLine();
+						newAccountName = newAccountName.trim();
+
 						request += "," + accountName + "," + newAccountName;
 						// Send request to server and receive response
 						String response = bank.processRequest(customer, request);
 						out.println(response);
+
+					} else if(request.equals("3")){
+
+						out.println("Enter the Username of Receiver: ");
+						String receiver = in.readLine();
+
+						out.println("Enter the Amount to transfer:  ");
+						String amount_totransfer = in.readLine();
+
+						out.println("Enter the Account that you want to transfer from:  ");
+						String accountName = SelectAccount(customer);
+
+						request += "," + receiver + "," + amount_totransfer + "," + accountName;
+
+						// Send request to server and receive response
+						String response = bank.processRequest(customer, request);
+						out.println(response);
+
+					} else if (request.equals("4")){
+
+						out.println("Enter the Account that you want to transfer from:  ");
+						String account_from = SelectAccount(customer);
+
+						out.println("Enter the Account that you want to transfer to:  ");
+						String account_to = SelectAccount(customer);
+
+						out.println("Enter the Amount to transfer:  ");
+						String string_amount = in.readLine();
+
+						request += "," + account_from + "," + account_to + "," + string_amount;
+						// Send request to server and receive response
+						String response = bank.processRequest(customer, request);
+						out.println(response);
+
+					} else if (request.equals("5")){
+						out.println("Thank you and have a nice day!");
+						System.exit(0);
+					} else if(!request.equalsIgnoreCase("5")) {
+						out.println("Wrong choice enter again.");
 					} else {
 						System.out.println("Request from " + customer.getKey());
 						String responce = bank.processRequest(customer, request);
@@ -84,6 +100,8 @@ public class NewBankClientHandler extends Thread{
 					}
 				}
 			}
+
+
 			else {
 				out.println("Log In Failed");
 			}
@@ -99,6 +117,41 @@ public class NewBankClientHandler extends Thread{
 				Thread.currentThread().interrupt();
 			}
 		}
+	}
+
+	private String showMenu()
+	{
+		return "1. Show My Accounts\n2. Change Account Names\n3. Transfer to another user\n4. Transfer to another owned account\n5. Quit";
+	}
+
+	private String SelectAccount(CustomerID customer){
+		//out.println("Enter the Account that you want to transfer from:  ");
+		String selectableAccounts = bank.processRequest(customer, "DISPLAYSELECTABLEACCOUNTS");
+		String option = "";
+		String[] listOfSelections = selectableAccounts.split("\\n");
+		boolean b = true;
+		while (b){
+			try{
+				out.println(selectableAccounts);
+				option = in.readLine();
+				option = option.trim();
+				while (Integer.parseInt(option) > listOfSelections.length ||
+						Integer.parseInt(option) <= 0){
+					out.println("Please select a valid option:");
+					out.println(selectableAccounts);
+					option = in.readLine();
+					option = option.trim();
+				}
+				b = false;
+			}catch (NumberFormatException | IOException ex) {
+				out.println("Please enter an integer only!");
+			}
+		}
+		// Retrieve selected account name
+		String accountName = listOfSelections[Integer.parseInt(option)-1].substring(
+				selectableAccounts.indexOf(". "));
+
+		return accountName.substring(accountName.indexOf(" ")+1);
 	}
 
 }

@@ -1,11 +1,12 @@
 package newbank.server;
 
+
 import java.util.ArrayList;
 
 public class Customer {
-	
+
 	private ArrayList<Account> accounts;
-	
+
 	public Customer() {
 		accounts = new ArrayList<>();
 	}
@@ -55,7 +56,7 @@ public class Customer {
 	}
 
 	public void addAccount(Account account) {
-		accounts.add(account);		
+		accounts.add(account);
 	}
 
 	public Account getAccount(String accountName) {
@@ -66,8 +67,10 @@ public class Customer {
 		}
 		return null;
 	}
-	
+
 	public ArrayList<Account> getAllAccounts() {
 		return accounts;
 	}
+
+
 }
