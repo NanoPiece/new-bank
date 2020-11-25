@@ -1,7 +1,8 @@
 package newbank.server;
 
-import java.util.HashMap;
-import java.util.Scanner;
+
+import java.util.*;
+
 
 public class NewBank {
 
@@ -15,9 +16,9 @@ public class NewBank {
 
 	private void addTestData() {
 		Customer bhagy = new Customer();
-		bhagy.addAccount(new Account("Main", 1000.0));
-		bhagy.addAccount(new Account("Second", 2000.0));
-		bhagy.addAccount(new Account("very long string of accounts", 3000000.0));
+		bhagy.addAccount(new Account("Current", 1000.0));
+		bhagy.addAccount(new Account("Savings", 2000.0));
+		bhagy.addAccount(new Account("Checking", 3000000.0));
 		customers.put("Bhagy", bhagy);
 
 		Customer christina = new Customer();
@@ -43,12 +44,13 @@ public class NewBank {
 	// commands from the NewBank customer are processed in this method
 	public synchronized String processRequest(CustomerID customer, String request) {
 		if(customers.containsKey(customer.getKey())) {
-			switch(request) {
+			List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
+			switch(input.get(0)) {
 				case "1" : return showMyAccounts(customer);
-				case "2" : return "Transfer to external user Complete";
-				case "3" : return "Transfer to savings account Complete";
-				case "4" : return "Transfer to current account Complete";
-				case "5" : return "Thank you and have a nice day";
+				case "2" : return changeMyAccountName(customer, request);
+				case "3" : return transferToExternalUser(customer, request);
+				case "4" : return transferToOtherAccount(customer, request);
+				case "DISPLAYSELECTABLEACCOUNTS" : return displaySelectableAccounts(customer);
 				default : return "FAIL";
 			}
 		}
@@ -59,9 +61,57 @@ public class NewBank {
 		return (customers.get(customer.getKey())).accountsToString();
 	}
 
+	private String changeMyAccountName(CustomerID customer, String request) {
+		// Convert request from String to List
+		// index: 0 = requestCommand, 1 = accountName, 2 = newAccountName
+		List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
+		// get account
+		Account account = customers.get(customer.getKey()).getAccount(input.get(1));
+		// change account name
+		account.setAccountName(input.get(2));
+
+		return "You account name has been modified.";
+	}
+
+	private String displaySelectableAccounts(CustomerID customer) {
+		ArrayList<Account> accounts = customers.get(customer.getKey()).getAllAccounts();
+		String output = "";
+		for(int i=1; i<= accounts.size(); i++){
+			String account = accounts.get(i-1).getAccountName();
+			output += i + ". " + account + "\n";
+		}
+		return output;
+	}
+
+	private String transferToExternalUser(CustomerID customer, String request) {
+		List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
+		Customer Receiver = bank.getIndex(input.get(1));
+		if(Receiver==null)
+		{
+			return "No user exists!";
+		}
+		Double amount = Double.valueOf(input.get(2));
+		Account account = customers.get(customer.getKey()).getAccount(input.get(3));
+		account.transfer(Receiver.getAllAccounts().get(0), amount);
+		return "Transfer to external user Complete";
+	}
+
+	private String transferToOtherAccount(CustomerID customer, String request) {
+		List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
+		if(customers.get(customer.getKey()).getAllAccounts().size()<2)
+		{
+			return "You don't have 2 accounts!";
+		}
+		Account account_from = customers.get(customer.getKey()).getAccount(input.get(1));
+		Account account_to = customers.get(customer.getKey()).getAccount(input.get(2));
+		Double amount = Double.valueOf(input.get(3));
+		account_from.transfer(account_to, amount);
+		return "Internal transfer to other account Complete";
+	}
+
 	Customer getIndex(String newP)
 	{
 		return customers.getOrDefault(newP,null);
 	}
-
 }
+

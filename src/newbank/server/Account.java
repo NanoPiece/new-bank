@@ -53,4 +53,7 @@ public class Account {
 		}
 	}
 
+	public void setAccountName(String name) {
+		this.accountName = name;
+	}
 }
