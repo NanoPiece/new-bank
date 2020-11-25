@@ -11,6 +11,10 @@ public class Customer {
 		accounts = new ArrayList<>();
 	}
 
+	public ArrayList<Account> getAccounts() {
+		return accounts;
+	}
+
 	// Return the list of accounts of a customer as a string
 	public String accountsToString() {
 		String accountNameHeading = "Account Name";
@@ -71,6 +75,5 @@ public class Customer {
 	public ArrayList<Account> getAllAccounts() {
 		return accounts;
 	}
-
 
 }
