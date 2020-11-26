@@ -7,7 +7,7 @@ import java.util.*;
 public class NewBank {
 
 	private static final NewBank bank = new NewBank();
-	private HashMap<String,Customer> customers;
+	public HashMap<String,Customer> customers;
 
 	private NewBank() {
 		customers = new HashMap<>();
@@ -50,6 +50,7 @@ public class NewBank {
 				case "2" : return changeMyAccountName(customer, request);
 				case "3" : return transferToExternalUser(customer, request);
 				case "4" : return transferToOtherAccount(customer, request);
+				case "5" : return createNewAccount(customer, request);
 				case "DISPLAYSELECTABLEACCOUNTS" : return displaySelectableAccounts(customer);
 				default : return "FAIL";
 			}
@@ -109,9 +110,26 @@ public class NewBank {
 		return "Internal transfer to other account Complete";
 	}
 
+
+	private String createNewAccount(CustomerID customer, String request) {
+		List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
+		System.out.println(input.get(1));
+		String accountType = (input.get(1));
+		Customer thisCustomer = customers.get(customer.getKey());
+		if (accountType.equals("1")) {
+			accountType = "Current Account";
+		}
+		if (accountType.equals("2")) {
+			accountType = "Savings Account";
+		}
+		thisCustomer.addAccount(new Account(accountType, 00.0));
+		return "Account '" + accountType + "' Created.\n";
+	}
+  
 	Customer getIndex(String newP)
 	{
 		return customers.getOrDefault(newP,null);
 	}
+
 }
 
