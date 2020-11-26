@@ -110,6 +110,7 @@ public class NewBank {
 		return "Internal transfer to other account Complete";
 	}
 
+
 	private String createNewAccount(CustomerID customer, String request) {
 		List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
 		System.out.println(input.get(1));
@@ -124,9 +125,11 @@ public class NewBank {
 		thisCustomer.addAccount(new Account(accountType, 00.0));
 		return "Account '" + accountType + "' Created.\n";
 	}
-
+  
 	Customer getIndex(String newP)
 	{
 		return customers.getOrDefault(newP,null);
 	}
+
 }
+
