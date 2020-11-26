@@ -1,7 +1,6 @@
 package newbank.server;
 
 
-import java.io.IOException;
 import java.util.ArrayList;
 
 public class Customer {
@@ -64,5 +63,17 @@ public class Customer {
 		accounts.add(account);
 	}
 
+	public Account getAccount(String accountName) {
+		for(Account a : accounts){
+			if (a.getAccountName().equals(accountName)) {
+				return a;
+			}
+		}
+		return null;
+	}
+
+	public ArrayList<Account> getAllAccounts() {
+		return accounts;
+	}
 
 }
