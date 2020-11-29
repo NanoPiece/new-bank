@@ -1,13 +1,22 @@
 package newbank.server;
 
 
+import java.util.Date;
+import java.sql.Timestamp;
 import java.util.*;
+import java.util.concurrent.*;
+import java.util.Timer.*;
 
 
 public class NewBank {
 
 	private static final NewBank bank = new NewBank();
 	public HashMap<String,Customer> customers;
+	//public ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(); // queue for activityQueue method
+	//public ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1); // queue for activityQueue method
+	public Timer timer = new Timer();
+
+	public HashMap<String,TimerTask> scheduledActions = new HashMap<>();
 
 	private NewBank() {
 		customers = new HashMap<>();
@@ -51,6 +60,8 @@ public class NewBank {
 				case "3" : return transferToExternalUser(customer, request);
 				case "4" : return transferToOtherAccount(customer, request);
 				case "5" : return createNewAccount(customer, request);
+				case "6" : return showQueue();
+				case "7" : return cancelAction(request);
 				case "DISPLAYSELECTABLEACCOUNTS" : return displaySelectableAccounts(customer);
 				default : return "FAIL";
 			}
@@ -91,10 +102,8 @@ public class NewBank {
 		{
 			return "No user exists!";
 		}
-		Double amount = Double.valueOf(input.get(2));
-		Account account = customers.get(customer.getKey()).getAccount(input.get(3));
-		account.transfer(Receiver.getAllAccounts().get(0), amount);
-		return "Transfer to external user Complete";
+		queueAction(customer, request, "transferToExternalUser");
+		return "Transfer to external user scheduled";
 	}
 
 	private String transferToOtherAccount(CustomerID customer, String request) {
@@ -129,6 +138,92 @@ public class NewBank {
 	Customer getIndex(String newP)
 	{
 		return customers.getOrDefault(newP,null);
+	}
+
+	// add transaction to the queue with a time delay of 5 minutes
+	private void queueAction(CustomerID customer, String request, String action) {
+
+		// time delay in milliseconds (300000 = 5 minutes)
+		int delay = 300000;
+
+		// switch to handle different functions
+		if(customers.containsKey(customer.getKey())) {
+			switch(action) {
+				case "transferToExternalUser" :
+
+					// get recipient, customer and account
+					List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
+					Customer Receiver = bank.getIndex(input.get(1));
+					Double amount = Double.valueOf(input.get(2));
+					Account account = customers.get(customer.getKey()).getAccount(input.get(3));
+
+					// build id string
+					Date date= new Date();
+					Timestamp ts = new Timestamp(date.getTime());
+					String id = customer.getKey() + "," + input.get(3) + "," + input.get(1) + "," + input.get(2) + "," + ts.toString().replace(' ', '-');
+
+					// create task
+					TimerTask task = new TimerTask() {
+						@Override
+						public void run() {
+							account.transfer(Receiver.getAllAccounts().get(0), amount);
+							scheduledActions.remove(id);
+						}
+					};
+
+
+					// add task to list
+					scheduledActions.put(id, task);
+
+					// schedule task
+					timer.schedule(task, delay);
+			}
+		}
+	}
+
+	// show scheduled transactions in the queue
+	private String showQueue() {
+
+		// initialize empty string
+		StringBuilder queueString = new StringBuilder();
+
+		// print header
+		queueString.append("Scheduled Actions:\n");
+
+		// begin transaction id counter
+		int menuOption = 1; 
+
+		// get elements and add to queueString
+		for (String id:scheduledActions.keySet()) {
+			List<String> input = Arrays.asList(id.split("\\s*,\\s*"));
+			queueString.append(menuOption).append(". ").append(input.get(1)).append(" --> ").append(input.get(2)).append(": ").append(input.get(3)).append("\n");
+			menuOption++;
+		}
+		return queueString.toString();
+	}
+
+	// cancel scheduled action
+	private String cancelAction(String index) {
+
+		// get transaction to be cancelled
+		List<String> input = Arrays.asList(index.split("\\s*,\\s*"));
+
+		// begin transaction id counter
+		int menuOption = 1;
+
+		// iterate accross transactions and increment transaction id counter
+		for (String id:scheduledActions.keySet()) {
+
+			// if transaction id matches the transaction to be cancelled id then cancel it, remove it from the HashMap and return success message
+			if (menuOption == Integer.parseInt(input.get(1))){
+				scheduledActions.get(id).cancel();
+				scheduledActions.remove(id);
+				return "Transaction cancelled";
+			}
+			menuOption++;
+		}
+		// if not found then return error message
+		return "Not a valid ID!";
 	}
 
 }

@@ -128,6 +128,27 @@ public class NewBankClientHandler extends Thread{
 						String response = bank.processRequest(customer, request);
 						out.println(response);
 					} else if (request.equals("6")){
+
+						// show scheduled transfers
+						String response = bank.processRequest(customer, request);
+						out.println(response);
+
+					} else if (request.equals("7")){
+
+						// cancel a scheduled transfer
+						// show scheduled transfers
+						out.println(bank.processRequest(customer, "6"));
+
+						// get id of transfer to be cancelled
+						out.println("Enter number of transaction you wish to cancel:");
+						String cancelTransaction = in.readLine();
+						request += "," + cancelTransaction;
+
+						// cancel transfer
+						String response = bank.processRequest(customer, request);
+						out.println(response);
+
+					} else if (request.equals("8")){
 						out.println("Thank you and have a nice day!");
 						System.exit(0);
 					} else if(!request.equalsIgnoreCase("6")) {
@@ -158,7 +179,7 @@ public class NewBankClientHandler extends Thread{
 
 	private String showMenu()
 	{
-		return "1. Show My Accounts\n2. Change Account Names\n3. Transfer to another user\n4. Transfer to another owned account\n5. Create New Account\n6. Quit";
+		return "1. Show My Accounts\n2. Change Account Names\n3. Transfer to another user\n4. Transfer to another owned account\n5. Create New Account\n6. Show scheduled transfers\n7. Cancel a scheduled transfer\n8. Quit";
 	}
 
 	private String SelectAccount(CustomerID customer){
@@ -180,7 +201,7 @@ public class NewBankClientHandler extends Thread{
 					option = option.trim();
 				}
 				b = false;
-			}catch (NumberFormatException | IOException ex) {
+			} catch (NumberFormatException | IOException ex) {
 				out.println("Please enter an integer only!");
 			}
 		}
