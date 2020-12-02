@@ -2,6 +2,7 @@ package newbank.server;
 
 
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.Date;
 import java.sql.Timestamp;
 import java.util.*;
@@ -61,7 +62,7 @@ public class NewBank {
 				case "3" : return transferToExternalUser(customer, request);
 				case "4" : return transferToOtherAccount(customer, request);
 				case "5" : return createNewAccount(customer, request);
-				case "6" : return showQueue();
+				case "6" : return showQueue(request);
 				case "7" : return cancelAction(request);
 				case "DISPLAYSELECTABLEACCOUNTS" : return displaySelectableAccounts(customer);
 				case "CREATEACCOUNT" : return createLoginAccount(request);
@@ -113,28 +114,32 @@ public class NewBank {
 		{
 			return "No user exists!";
 		}
-		int authnumber = Integer.valueOf(input.get(3));
-
+		int authnumber = Integer.parseInt(input.get(4));
 		boolean correct = run2FA(authnumber);
 		if (correct==true){
 			queueAction(customer, request, "transferToExternalUser");
 			return "Transfer to external user scheduled";
-		} else {
-			return "Transfer to external user fail: Authentication failed";
 		}
+		return "Transfer to external user failed: Authentication fail";
 	}
 
-	private String transferToOtherAccount(CustomerID customer, String request) {
+	private String transferToOtherAccount(CustomerID customer, String request) throws Exception {
 		List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
-		if(customers.get(customer.getKey()).getAllAccounts().size()<2)
-		{
-			return "You don't have 2 accounts!";
+
+		int authnumber = Integer.parseInt(input.get(4));
+		boolean correct = run2FA(authnumber);
+		if (correct==true){
+			if(customers.get(customer.getKey()).getAllAccounts().size()<2)
+			{
+				return "You don't have 2 accounts!";
+			}
+			Account account_from = customers.get(customer.getKey()).getAccount(input.get(1));
+			Account account_to = customers.get(customer.getKey()).getAccount(input.get(2));
+			Double amount = Double.valueOf(input.get(3));
+			account_from.transfer(account_to, amount);
+			return "Internal transfer to other account Complete";
 		}
-		Account account_from = customers.get(customer.getKey()).getAccount(input.get(1));
-		Account account_to = customers.get(customer.getKey()).getAccount(input.get(2));
-		Double amount = Double.valueOf(input.get(3));
-		account_from.transfer(account_to, amount);
-		return "Internal transfer to other account Complete";
+		return "Not able to transfer to other account: Authentication fail";
 	}
 
 
@@ -200,8 +205,8 @@ public class NewBank {
 	}
 
 	// show scheduled transactions in the queue
-	private String showQueue() {
-
+	private String showQueue(String request) throws Exception {
+		List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
 		// initialize empty string
 		StringBuilder queueString = new StringBuilder();
 
@@ -209,15 +214,19 @@ public class NewBank {
 		queueString.append("Scheduled Actions:\n");
 
 		// begin transaction id counter
-		int menuOption = 1; 
-
-		// get elements and add to queueString
-		for (String id:scheduledActions.keySet()) {
-			List<String> input = Arrays.asList(id.split("\\s*,\\s*"));
-			queueString.append(menuOption).append(". ").append(input.get(1)).append(" --> ").append(input.get(2)).append(": ").append(input.get(3)).append("\n");
-			menuOption++;
+		int menuOption = 1;
+		int authnumber = Integer.parseInt(input.get(1));
+		boolean correct = run2FA(authnumber);
+		if (correct==true){
+			for (String id:scheduledActions.keySet()) {
+				// get elements and add to queueString
+				List<String> input2 = Arrays.asList(id.split("\\s*,\\s*"));
+				queueString.append(menuOption).append(". ").append(input2.get(1)).append(" --> ").append(input2.get(2)).append(": ").append(input2.get(3)).append("\n");
+				menuOption++;
+			}
+			return queueString.toString();
 		}
-		return queueString.toString();
+		return "Not able to show scheduled actions: Authentication fail";
 	}
 
 	// cancel scheduled action
@@ -229,7 +238,6 @@ public class NewBank {
 		// begin transaction id counter
 		int menuOption = 1;
 
-		// iterate accross transactions and increment transaction id counter
 		for (String id:scheduledActions.keySet()) {
 
 			// if transaction id matches the transaction to be cancelled id then cancel it, remove it from the HashMap and return success message
@@ -240,8 +248,13 @@ public class NewBank {
 			}
 			menuOption++;
 		}
+
+		if (Integer.parseInt(input.get(1))==0) {
+			return "Back to main menu";
+		}
 		// if not found then return error message
 		return "Not a valid ID!";
+
 	}
 
 	public boolean run2FA(int authNumber) throws Exception {

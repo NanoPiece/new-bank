@@ -136,18 +136,24 @@ public class NewBankClientHandler extends Thread{
 
 						// cancel a scheduled transfer
 						// show scheduled transfers
-						out.println(bank.processRequest(customer, "6"));
-
-						// get id of transfer to be cancelled
-						out.println("Enter number of transaction you wish to cancel:");
-						String cancelTransaction = in.readLine();
-
 						out.println("Please type in the 6-digit authentication number shown in your Google Authenticator App");
 						String authNumber = in.readLine();
-
-						request += "," + cancelTransaction + "," + authNumber;
-
+						request = "6" + "," + authNumber;
 						String response = bank.processRequest(customer, request);
+						out.println(response);
+						while (response.equals("Not able to show scheduled actions: Authentication fail")){
+							out.println("Please type in the 6-digit authentication number shown in your Google Authenticator App");
+							authNumber = in.readLine();
+							request = "6" + "," + authNumber;
+							response = bank.processRequest(customer, request);
+							out.println(response);
+						}
+						// get id of transfer to be cancelled
+						out.println("Enter number of transaction you wish to cancel (type 0 if there are no scheduled actions):");
+						String cancelTransaction = in.readLine();
+						request = "7" + "," + cancelTransaction + "," + authNumber;
+
+						response = bank.processRequest(customer, request);
 						out.println(response);
 
 					} else if (request.equals("8")){
