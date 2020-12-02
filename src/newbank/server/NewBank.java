@@ -1,6 +1,7 @@
 package newbank.server;
 
 
+import java.io.IOException;
 import java.util.Date;
 import java.sql.Timestamp;
 import java.util.*;
@@ -51,7 +52,7 @@ public class NewBank {
 	}
 
 	// commands from the NewBank customer are processed in this method
-	public synchronized String processRequest(CustomerID customer, String request) {
+	public synchronized String processRequest(CustomerID customer, String request) throws Exception {
 		if(customers.containsKey(customer.getKey())) {
 			List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
 			switch(input.get(0)) {
@@ -63,10 +64,19 @@ public class NewBank {
 				case "6" : return showQueue();
 				case "7" : return cancelAction(request);
 				case "DISPLAYSELECTABLEACCOUNTS" : return displaySelectableAccounts(customer);
+				case "CREATEACCOUNT" : return createLoginAccount(request);
 				default : return "FAIL";
 			}
 		}
 		return "FAIL";
+	}
+
+	public synchronized String processAccountCreationRequest(String request) throws Exception {
+		List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
+		switch(input.get(0)) {
+			case "CREATEACCOUNT" : return createLoginAccount(request);
+			default : return "FAIL";
+		}
 	}
 
 	private String showMyAccounts(CustomerID customer) {
@@ -95,15 +105,23 @@ public class NewBank {
 		return output;
 	}
 
-	private String transferToExternalUser(CustomerID customer, String request) {
+	private String transferToExternalUser(CustomerID customer, String request) throws Exception {
 		List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
 		Customer Receiver = bank.getIndex(input.get(1));
+
 		if(Receiver==null)
 		{
 			return "No user exists!";
 		}
-		queueAction(customer, request, "transferToExternalUser");
-		return "Transfer to external user scheduled";
+		int authnumber = Integer.valueOf(input.get(3));
+
+		boolean correct = run2FA(authnumber);
+		if (correct==true){
+			queueAction(customer, request, "transferToExternalUser");
+			return "Transfer to external user scheduled";
+		} else {
+			return "Transfer to external user fail: Authentication failed";
+		}
 	}
 
 	private String transferToOtherAccount(CustomerID customer, String request) {
@@ -123,7 +141,7 @@ public class NewBank {
 	private String createNewAccount(CustomerID customer, String request) {
 		List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
 		System.out.println(input.get(1));
-		String accountType = (input.get(1));
+		String accountType = input.get(1);
 		Customer thisCustomer = customers.get(customer.getKey());
 		if (accountType.equals("1")) {
 			accountType = "Current Account";
@@ -224,6 +242,72 @@ public class NewBank {
 		}
 		// if not found then return error message
 		return "Not a valid ID!";
+	}
+
+	public boolean run2FA(int authNumber) throws Exception {
+		String base32Secret = "NY4A5CPJZ46LXZCP";
+		boolean correct = TimeBasedOneTimePasswordUtil.validateCurrentNumber(base32Secret, authNumber, TimeBasedOneTimePasswordUtil.DEFAULT_TIME_STEP_SECONDS*1000);
+		return correct;
+	}
+
+	//Password validation (Credit: https://java2blog.com/validate-password-java/)
+	public static boolean isValidPassword(String password)
+	{
+		boolean isValid = true;
+		if (password.length() > 15 || password.length() < 8)
+		{
+			System.out.println("Password must be less than 20 and more than 8 characters in length.");
+			isValid = false;
+		}
+		String upperCaseChars = "(.*[A-Z].*)";
+		if (!password.matches(upperCaseChars ))
+		{
+			System.out.println("Password must have atleast one uppercase character");
+			isValid = false;
+		}
+		String lowerCaseChars = "(.*[a-z].*)";
+		if (!password.matches(lowerCaseChars ))
+		{
+			System.out.println("Password must have atleast one lowercase character");
+			isValid = false;
+		}
+		String numbers = "(.*[0-9].*)";
+		if (!password.matches(numbers ))
+		{
+			System.out.println("Password must have atleast one number");
+			isValid = false;
+		}
+		String specialChars = "(.*[@,#,$,%].*$)";
+		if (!password.matches(specialChars ))
+		{
+			System.out.println("Password must have atleast one special character among @#$%");
+			isValid = false;
+		}
+		return isValid;
+	}
+
+	public String createLoginAccount(String request) {
+		List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
+		String userName = input.get(1);
+			/*
+			out.println("Please create a password:");
+			String password = in.readLine();
+
+			//Password validation (Credit: https://java2blog.com/validate-password-java/)
+			boolean validPassword = isValidPassword(password);
+			while (validPassword==false){
+				out.println("Password is not strong enough. Please create a new password:");
+				password = in.readLine();
+			}
+
+			String AccountDetails = userName + "," + password;
+
+			 */
+		Customer newCustomer = new Customer();       // create new customer
+		newCustomer.addAccount(new Account("Main", 00.0));    // create a default account for the customer
+		bank.customers.put(userName, newCustomer);        // add the customer to the list of customers and assign their username
+		String output = "Account: '" + userName + "' Created. Please Download the Google Authenticator App and use the key NY4A5CPJZ46LXZCP to set up your 2FA";
+		return output;
 	}
 
 }

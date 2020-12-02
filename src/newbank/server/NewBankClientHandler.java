@@ -18,37 +18,6 @@ public class NewBankClientHandler extends Thread{
 		out = new PrintWriter(s.getOutputStream(), true);
 	}
 
-	public void createAccount() {
-		try {
-			out.println("Please create a username:");
-			String userName = in.readLine();         // accept a username from customer
-
-			/*
-			out.println("Please create a password:");
-			String password = in.readLine();
-
-			//Password validation (Credit: https://java2blog.com/validate-password-java/)
-			boolean validPassword = isValidPassword(password);
-			while (validPassword==false){
-				out.println("Password is not strong enough. Please create a new password:");
-				password = in.readLine();
-			}
-
-			String AccountDetails = userName + "," + password;
-
-			 */
-
-			Customer newCustomer = new Customer();       // create new customer
-			newCustomer.addAccount(new Account("Main", 00.0));    // create a default account for the customer
-			bank.customers.put(userName, newCustomer);        // add the customer to the list of customers and assign their username
-			out.println("Account: '" + userName + "' Created. Please Download the Google Authenticator App and use the key NY4A5CPJZ46LXZCP to set up your 2FA");
-
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		run();
-	}
-
 
 	public void run() {
 		// keep getting requests from the client and processing them
@@ -63,7 +32,12 @@ public class NewBankClientHandler extends Thread{
 				customerAction = in.readLine();
 			}
 			if (customerAction.equals("2")) {
-				createAccount();                // direct to account creation where they will be able to choose a username and continue
+				out.println("Please create a username:");
+				String userName = in.readLine();
+				String request = "CREATEACCOUNT" + "," + userName;
+				String response = bank.processAccountCreationRequest(request);
+				out.println(response);          // direct to account creation where they will be able to choose a username and continue
+				run();
 			}
 			if (customerAction.equals("1")) {
 				// ask for user name
@@ -98,12 +72,6 @@ public class NewBankClientHandler extends Thread{
 
 						request += "," + accountName + "," + newAccountName;
 
-						//2FA required before request is processed
-						boolean authsuccess = run2FA();
-						while (authsuccess==false){
-							out.println("authentication failed");
-							run2FA();
-						}
 						String response = bank.processRequest(customer, request);
 						out.println(response);
 
@@ -118,14 +86,11 @@ public class NewBankClientHandler extends Thread{
 						out.println("Enter the Account that you want to transfer from:  ");
 						String accountName = SelectAccount(customer);
 
-						request += "," + receiver + "," + amount_totransfer + "," + accountName;
+						out.println("Please type in the 6-digit authentication number shown in your Google Authenticator App");
+						String authNumber = in.readLine();
 
-						//2FA required before request is processed
-						boolean authsuccess = run2FA();
-						while (authsuccess==false){
-							out.println("authentication failed");
-							run2FA();
-						}
+						request += "," + receiver + "," + amount_totransfer + "," + accountName + "," + authNumber;;
+
 						String response = bank.processRequest(customer, request);
 						out.println(response);
 
@@ -140,14 +105,11 @@ public class NewBankClientHandler extends Thread{
 						out.println("Enter the Amount to transfer:  ");
 						String string_amount = in.readLine();
 
-						request += "," + account_from + "," + account_to + "," + string_amount;
+						out.println("Please type in the 6-digit authentication number shown in your Google Authenticator App");
+						String authNumber = in.readLine();
 
-						//2FA required before request is processed
-						boolean authsuccess = run2FA();
-						while (authsuccess==false){
-							out.println("authentication failed");
-							run2FA();
-						}
+						request += "," + account_from + "," + account_to + "," + string_amount + "," + authNumber;
+
 						String response = bank.processRequest(customer, request);
 						out.println(response);
 
@@ -162,13 +124,11 @@ public class NewBankClientHandler extends Thread{
 						}
 						String response = bank.processRequest(customer, request);
 						out.println(response);
+
 					} else if (request.equals("6")){
-						//2FA required before request is processed
-						boolean authsuccess = run2FA();
-						while (authsuccess==false){
-							out.println("authentication failed");
-							run2FA();
-						}
+						out.println("Please type in the 6-digit authentication number shown in your Google Authenticator App");
+						String authNumber = in.readLine();
+						request += "," + authNumber;
 						String response = bank.processRequest(customer, request);
 						out.println(response);
 
@@ -181,14 +141,12 @@ public class NewBankClientHandler extends Thread{
 						// get id of transfer to be cancelled
 						out.println("Enter number of transaction you wish to cancel:");
 						String cancelTransaction = in.readLine();
-						request += "," + cancelTransaction;
 
-						//2FA required before request is processed
-						boolean authsuccess = run2FA();
-						while (authsuccess==false){
-							out.println("authentication failed");
-							run2FA();
-						}
+						out.println("Please type in the 6-digit authentication number shown in your Google Authenticator App");
+						String authNumber = in.readLine();
+
+						request += "," + cancelTransaction + "," + authNumber;
+
 						String response = bank.processRequest(customer, request);
 						out.println(response);
 
@@ -226,7 +184,7 @@ public class NewBankClientHandler extends Thread{
 		return "1. Show My Accounts\n2. Change Account Names\n3. Transfer to another user\n4. Transfer to another owned account\n5. Create New Account\n6. Show scheduled transfers\n7. Cancel a scheduled transfer\n8. Quit";
 	}
 
-	private String SelectAccount(CustomerID customer){
+	private String SelectAccount(CustomerID customer) throws Exception {
 		//out.println("Enter the Account that you want to transfer from:  ");
 		String selectableAccounts = bank.processRequest(customer, "DISPLAYSELECTABLEACCOUNTS");
 		String option = "";
@@ -254,50 +212,6 @@ public class NewBankClientHandler extends Thread{
 				selectableAccounts.indexOf(". "));
 
 		return accountName.substring(accountName.indexOf(" ")+1);
-	}
-
-	public boolean run2FA() throws Exception {
-		out.println("Please type in the 6-digit authentication number shown in your Google Authenticator App");
-		int authNumber = Integer.parseInt(in.readLine());
-		String base32Secret = "NY4A5CPJZ46LXZCP";
-		boolean correct = TimeBasedOneTimePasswordUtil.validateCurrentNumber(base32Secret, authNumber, TimeBasedOneTimePasswordUtil.DEFAULT_TIME_STEP_SECONDS*1000);
-		return correct;
-	}
-
-	//Password validation (Credit: https://java2blog.com/validate-password-java/)
-	public static boolean isValidPassword(String password)
-	{
-		boolean isValid = true;
-		if (password.length() > 15 || password.length() < 8)
-		{
-			System.out.println("Password must be less than 20 and more than 8 characters in length.");
-			isValid = false;
-		}
-		String upperCaseChars = "(.*[A-Z].*)";
-		if (!password.matches(upperCaseChars ))
-		{
-			System.out.println("Password must have atleast one uppercase character");
-			isValid = false;
-		}
-		String lowerCaseChars = "(.*[a-z].*)";
-		if (!password.matches(lowerCaseChars ))
-		{
-			System.out.println("Password must have atleast one lowercase character");
-			isValid = false;
-		}
-		String numbers = "(.*[0-9].*)";
-		if (!password.matches(numbers ))
-		{
-			System.out.println("Password must have atleast one number");
-			isValid = false;
-		}
-		String specialChars = "(.*[@,#,$,%].*$)";
-		if (!password.matches(specialChars ))
-		{
-			System.out.println("Password must have atleast one special character among @#$%");
-			isValid = false;
-		}
-		return isValid;
 	}
 
 }
