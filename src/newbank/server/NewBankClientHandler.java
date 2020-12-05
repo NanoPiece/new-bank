@@ -7,7 +7,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
-public class NewBankClientHandler extends Thread {
+public class NewBankClientHandler extends Thread{
 
 	private NewBank bank;
 	private BufferedReader in;
@@ -47,6 +47,7 @@ public class NewBankClientHandler extends Thread {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		run();
 	}
 
 		public void run() {
@@ -57,6 +58,7 @@ public class NewBankClientHandler extends Thread {
 			out.println("1. Log In");
 			out.println("2. Create User");
 			String customerAction = in.readLine();
+
 			while (!(customerAction.equals("1")) && (!(customerAction.equals("2")))) {
 				out.println("Please try again");          // ensure customer's entry is valid
 				customerAction = in.readLine();
