@@ -1,6 +1,5 @@
 package newbank.server;
 
-
 import java.util.*;
 
 
@@ -70,7 +69,6 @@ public class NewBank {
 		Account account = customers.get(customer.getKey()).getAccount(input.get(1));
 		// change account name
 		account.setAccountName(input.get(2));
-
 		return "You account name has been modified.";
 	}
 
@@ -123,7 +121,7 @@ public class NewBank {
 			accountType = "Savings Account";
 		}
 		thisCustomer.addAccount(new Account(accountType, 00.0));
-		return "Account '" + accountType + "' Created.\n";
+		return "Account '" + accountType + "' Created.";
 	}
   
 	Customer getIndex(String newP)
