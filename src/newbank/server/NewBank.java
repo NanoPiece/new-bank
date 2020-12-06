@@ -1,6 +1,8 @@
 package newbank.server;
 
 
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.sql.Timestamp;
 import java.util.*;
@@ -12,26 +14,43 @@ public class NewBank {
 
 	private static final NewBank bank = new NewBank();
 	public HashMap<String,Customer> customers;
-	//public ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(); // queue for activityQueue method
-	//public ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1); // queue for activityQueue method
-	public Timer timer = new Timer();
 
+	// scheduler for applying interest
+	public double interestRate = 0.02;
+	public ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+
+	// scheduled actions
+	public Timer timer = new Timer();
 	public HashMap<String,TimerTask> scheduledActions = new HashMap<>();
 
 	private NewBank() {
+
 		customers = new HashMap<>();
 		addTestData();
+
+		// schedule interest payments
+		Calendar startDate = Calendar.getInstance();
+		startDate.set(2021, Calendar.JANUARY, 1);
+		long oneYearInMilliseconds = 31556952000L;
+		long intialDelay = (startDate.getTimeInMillis()-System.currentTimeMillis());
+		scheduler.scheduleAtFixedRate(new Runnable() {
+			@Override
+			public void run() {
+				payInterest(interestRate);
+				System.out.println("HELLO");
+			}
+		}, intialDelay, oneYearInMilliseconds, TimeUnit.MILLISECONDS);
 	}
 
 	private void addTestData() {
 		Customer bhagy = new Customer();
 		bhagy.addAccount(new Account("Current", 1000.0));
-		bhagy.addAccount(new Account("Savings", 2000.0));
+		bhagy.addAccount(new SavingsAccount("Savings", 2000.0));
 		bhagy.addAccount(new Account("Checking", 3000000.0));
 		customers.put("Bhagy", bhagy);
 
 		Customer christina = new Customer();
-		christina.addAccount(new Account("Savings", 1500.0));
+		christina.addAccount(new SavingsAccount("Savings", 1500.0));
 		customers.put("Christina", christina);
 
 		Customer john = new Customer();
@@ -127,11 +146,13 @@ public class NewBank {
 		Customer thisCustomer = customers.get(customer.getKey());
 		if (accountType.equals("1")) {
 			accountType = "Current Account";
+			thisCustomer.addAccount(new Account(accountType, 00.0));
 		}
 		if (accountType.equals("2")) {
 			accountType = "Savings Account";
+			thisCustomer.addAccount(new SavingsAccount(accountType, 00.0));
 		}
-		thisCustomer.addAccount(new Account(accountType, 00.0));
+
 		return "Account '" + accountType + "' Created.\n";
 	}
   
@@ -144,7 +165,7 @@ public class NewBank {
 	private void queueAction(CustomerID customer, String request, String action) {
 
 		// time delay in milliseconds (300000 = 5 minutes)
-		int delay = 300000;
+		int delay = 30000;
 
 		// switch to handle different functions
 		if(customers.containsKey(customer.getKey())) {
@@ -226,5 +247,19 @@ public class NewBank {
 		return "Not a valid ID!";
 	}
 
+	// add yearly interest
+	public void payInterest(double rate) {
+		for (String customerName: customers.keySet()) {
+			for (Account account: customers.get(customerName).getAllAccounts()) {
+				if (account.isSavingsAccount()) {
+					// calculate interest to be added
+					double interest = rate * account.getOpeningBalance();
+
+					// add interest to account
+					account.setAmount(account.getOpeningBalance() + interest);
+				}
+			}
+		}
+	}
 }
 

@@ -3,6 +3,7 @@ package newbank.server;
 public class Account {
 	String accountName;
 	double openingBalance;
+	public Boolean isSavingsAccount = false;
 
 	public Account(String username, double amount) {
 		this.accountName = username;
@@ -56,4 +57,6 @@ public class Account {
 	public void setAccountName(String name) {
 		this.accountName = name;
 	}
+
+	public Boolean isSavingsAccount() {return this.isSavingsAccount;}
 }
