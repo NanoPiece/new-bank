@@ -60,9 +60,11 @@ public class NewBank {
 				case "3" : return transferToExternalUser(customer, request);
 				case "4" : return transferToOtherAccount(customer, request);
 				case "5" : return createNewAccount(customer, request);
+				case "5a" : return closeAccount(customer, request);
 				case "6" : return showQueue();
 				case "7" : return cancelAction(request);
 				case "DISPLAYSELECTABLEACCOUNTS" : return displaySelectableAccounts(customer);
+				case "NUMBEROFUSERACCOUNTS": return String.valueOf(customers.get(customer.getKey()).numAccounts());
 				default : return "FAIL";
 			}
 		}
@@ -122,7 +124,7 @@ public class NewBank {
 
 	private String createNewAccount(CustomerID customer, String request) {
 		List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
-		System.out.println(input.get(1));
+		//System.out.println(input.get(1));
 		String accountType = (input.get(1));
 		Customer thisCustomer = customers.get(customer.getKey());
 		if (accountType.equals("1")) {
@@ -133,6 +135,43 @@ public class NewBank {
 		}
 		thisCustomer.addAccount(new Account(accountType, 00.0));
 		return "Account '" + accountType + "' Created.\n";
+	}
+
+	// close a customers account
+	private String closeAccount(CustomerID customer, String request) {
+		List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
+		//System.out.println(input.get(1));
+		int accountToClose = Integer.parseInt(input.get(1));
+		int accountToTransfer = Integer.parseInt(input.get(2));
+		Customer thisCustomer = customers.get(customer.getKey());
+
+		int accountIndex = 1;
+		Account transferAccount = null;
+
+		// get account to transfer to
+		for (Account account : thisCustomer.getAllAccounts()) {
+			if (accountIndex == accountToTransfer) {
+				transferAccount = account;
+				break;
+			}
+			accountIndex++;
+		}
+
+		if (transferAccount == null) {
+			return "Not a valid transfer account!";
+		}
+
+		accountIndex = 1;
+
+		for (Account account: thisCustomer.getAllAccounts()) {
+			if (accountIndex == accountToClose) {
+				account.transfer(transferAccount, account.getOpeningBalance());
+				thisCustomer.closeAccount(account);
+				return "Account closed.";
+			}
+			accountIndex++;
+		}
+		return "Not a valid choice.";
 	}
   
 	Customer getIndex(String newP)
