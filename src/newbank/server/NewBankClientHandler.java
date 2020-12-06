@@ -153,6 +153,44 @@ public class NewBankClientHandler extends Thread{
 						String response = bank.processRequest(customer, request);
 						out.println(response);
 						returnToMenu();
+					} else if (request.equals("5a")) {
+						clearScreen();
+
+						// check if user has accounts to close
+						if (Integer.parseInt(bank.processRequest(customer, "NUMBEROFUSERACCOUNTS")) == 0) {
+							out.println("User has no accounts!\n");
+						} else if (Integer.parseInt(bank.processRequest(customer, "NUMBEROFUSERACCOUNTS")) == 1) { // do not allow to close if only one account remains
+							out.println("User must have at least one account!");
+						} else {
+							// show accounts
+							out.println(bank.processRequest(customer, "1"));
+
+							// get account to close
+							out.println("Select which account you wish to close:\n");
+							String accountToClose = in.readLine();
+							request += "," + accountToClose;
+
+							String accountToTransferFundsTo;
+
+							// get account to transfer money to
+							do {
+								clearScreen();
+								out.println(bank.processRequest(customer, "1"));
+								out.println("Select which account you wish to transfer the remaining funds to:\n");
+								accountToTransferFundsTo = in.readLine();
+								if (accountToTransferFundsTo.equals(accountToClose)) {
+									out.println("Can't be the same account.\n");
+								}
+							} while (accountToTransferFundsTo.equals(accountToClose));
+							request += "," + accountToTransferFundsTo;
+
+							// send request and get response
+							String response = bank.processRequest(customer, request);
+							out.println(response);
+						}
+
+						// return menu
+						returnToMenu();
 					} else if (request.equals("6")) {
 						clearScreen();
 						out.println("Logging out...");
@@ -189,7 +227,7 @@ public class NewBankClientHandler extends Thread{
 	}
 
 	private String showMenu() {
-		return "Please choose from the options below: \n\n1. Show My Accounts\n2. Change Account Names\n3. Transfer to another user\n4. Transfer to another owned account\n5. Create New Account\n6. Log Out\n7. Quit";
+		return "Please choose from the options below: \n\n1. Show My Accounts\n2. Change Account Names\n3. Transfer to another user\n4. Transfer to another owned account\n5. Create New Account\n5a. Close an Account\n6. Log Out\n7. Quit";
 	}
 
 	public void clearScreen() {
@@ -198,7 +236,7 @@ public class NewBankClientHandler extends Thread{
 		out.flush();
 	}
 
-	private void returnToMenu() throws InterruptedException { ;
+	private void returnToMenu() throws InterruptedException {
 		out.println("\nReturning to menu screen...");
 		sleep();
 		clearScreen();
