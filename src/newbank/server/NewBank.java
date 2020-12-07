@@ -1,6 +1,7 @@
 package newbank.server;
 
 
+import java.sql.Array;
 import java.util.Date;
 import java.sql.Timestamp;
 import java.util.*;
@@ -12,6 +13,7 @@ public class NewBank {
 
 	private static final NewBank bank = new NewBank();
 	public HashMap<String,Customer> customers;
+	public HashMap<String,MicroLoan> microLoans;
 	//public ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(); // queue for activityQueue method
 	//public ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1); // queue for activityQueue method
 	public Timer timer = new Timer();
@@ -20,6 +22,7 @@ public class NewBank {
 
 	private NewBank() {
 		customers = new HashMap<>();
+		microLoans = new HashMap<>();
 		addTestData();
 	}
 
@@ -37,6 +40,16 @@ public class NewBank {
 		Customer john = new Customer();
 		john.addAccount(new Account("Checking", 250.0));
 		customers.put("John", john);
+
+		MicroLoan bhagy1 = new MicroLoan("Bhagy","Buy a new car",
+				5000.0, 3.0, microLoans.size()+1);
+		customers.get("Bhagy").addMicroLoanID(bhagy1.getLoanID());
+		microLoans.put(Integer.toString(bhagy1.getLoanID()),bhagy1);
+
+		MicroLoan bhagy2 = new MicroLoan("Bhagy","Buy Playstation 5",
+				1200.0, 5.0, microLoans.size()+1);
+		customers.get("Bhagy").addMicroLoanID(bhagy2.getLoanID());
+		microLoans.put(Integer.toString(bhagy2.getLoanID()),bhagy2);
 	}
 
 	public static NewBank getBank() {
@@ -63,6 +76,7 @@ public class NewBank {
 				case "5a" : return closeAccount(customer, request);
 				case "6" : return showQueue();
 				case "7" : return cancelAction(request);
+				case "MICROLOAN-1" : return showMicroLoanDashboard(customer);
 				case "DISPLAYSELECTABLEACCOUNTS" : return displaySelectableAccounts(customer);
 				case "NUMBEROFUSERACCOUNTS": return String.valueOf(customers.get(customer.getKey()).numAccounts());
 				default : return "FAIL";
@@ -263,6 +277,84 @@ public class NewBank {
 		}
 		// if not found then return error message
 		return "Not a valid ID!";
+	}
+
+	private String showMicroLoanDashboard(CustomerID customer) {
+		// Header
+		String header = "ID" + "   " + "Borrower" + "     " + "Lender" + "     " + "Description" +
+						"               " + "Total Amount" + "   " + "Paid Amount" + "   " +
+						"Interest (%/Y)" + "   " + "Status" + "\n";
+		String output = "";
+		output += header;
+		// Divider
+		for (int i=0; i<header.length(); i++){
+			output += "-";
+		}
+		output += "-----";
+		output += "\n";
+		// Content
+		ArrayList<Integer> associatedMicroLoanID =
+				(customers.get(customer.getKey())).getAssociatedMicroLoanID();
+		for (Integer loanID : associatedMicroLoanID) {
+			MicroLoan loan = microLoans.get(Integer.toString(loanID));
+			output += Integer.toString(loan.getLoanID());
+			output += emptySpaceNeedForMicroLoanDashboard("ID", Integer.toString(loan.getLoanID()),
+					3);
+			output += loan.getBorrowerID();
+			output += emptySpaceNeedForMicroLoanDashboard("Borrower", loan.getBorrowerID(),
+					5);
+			output += loan.getLenderID();
+			output += emptySpaceNeedForMicroLoanDashboard("Lender", loan.getLenderID(),
+					5);
+			output += loan.getDescription();
+			output += emptySpaceNeedForMicroLoanDashboard("Description", loan.getDescription(),
+					15);
+			output += loan.getTotalAmount();
+			output += emptySpaceNeedForMicroLoanDashboard("Total Amount",
+					Double.toString(loan.getTotalAmount()), 3);
+			output += loan.getPaidAmount();
+			output += emptySpaceNeedForMicroLoanDashboard("Paid Amount",
+					Double.toString(loan.getPaidAmount()), 3);
+			output += loan.getAnnualInterestRate();
+			output += emptySpaceNeedForMicroLoanDashboard("Interest (%/Y)",
+					Double.toString(loan.getAnnualInterestRate()), 3);
+			output += loan.getStatus();
+			output += "\n";
+		}
+		return output;
+	}
+	private String emptySpaceNeedForMicroLoanDashboard(String header, String value,
+													   int defaultEmptySpaceAfterHeader) {
+		String output = "";
+		int spaceRequired = 0;
+		if (value == null) {
+			value = "null";
+		}
+		if (header.length() == value.length()) {
+			spaceRequired = defaultEmptySpaceAfterHeader;
+		} else {
+			spaceRequired = header.length()-value.length()+defaultEmptySpaceAfterHeader;
+			if (spaceRequired<0) {
+				spaceRequired = 0;
+			}
+		}
+		for (int i=0; i<spaceRequired; i++){
+			output += " ";
+		}
+		return output;
+	}
+
+	private String submitLoanApplication() {
+		return "Your loan application has been submitted.";
+	}
+
+	private String submitLoanOffer() {
+		return "Your interest rate offer has been sent to the applicant";
+	}
+
+	private String acceptLoanOffer() {
+		return "You have accepted the loan offer. The money is now wired to your account and " +
+				"the interest rate calculation will begin now.";
 	}
 
 }
