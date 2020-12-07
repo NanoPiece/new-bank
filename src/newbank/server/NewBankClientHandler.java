@@ -200,6 +200,31 @@ public class NewBankClientHandler extends Thread{
 						clearScreen();
 						out.println("Thank you and have a nice day!");
 						System.exit(0);
+					} else if (request.equals("10")) {
+						out.println("Welcome to Micro-Loan!");
+						while (!request.equals("5")) {
+							out.println(showMicroLoanOptions());
+							request = in.readLine();
+							if (request.equals("1")){
+								// 1. View Micro-Loan Dashboard
+								request = "MICROLOAN-1";
+								String response = bank.processRequest(customer, request);
+								out.println(response);
+
+							} else if (request.equals("2")) {
+								// 2. Apply For New Loan
+							} else if (request.equals("3")) {
+								// 3. Accept Loan
+							} else if (request.equals("4")) {
+								// 4. Cancel Loan Application
+							} else if (request.equals("5")) {
+								// 5. Return to Main Menu
+								returnToMenu();
+							} else {
+								clearScreen();
+								out.print("Invalid Entry\n");
+							}
+						}
 					} else if (!request.equalsIgnoreCase("6")) {
 						clearScreen();
 						out.println("Invalid Entry\n");
@@ -226,8 +251,27 @@ public class NewBankClientHandler extends Thread{
 		}
 	}
 
-	private String showMenu() {
-		return "Please choose from the options below: \n\n1. Show My Accounts\n2. Change Account Names\n3. Transfer to another user\n4. Transfer to another owned account\n5. Create New Account\n5a. Close an Account\n6. Log Out\n7. Quit";
+	private String
+	showMenu() {
+		return "Please choose from the options below: \n\n" +
+				"1. Show My Accounts\n" +
+				"2. Change Account Names\n" +
+				"3. Transfer to another user\n" +
+				"4. Transfer to another owned account\n" +
+				"5. Create New Account\n" +
+				"5a. Close an Account\n" +
+				"6. Log Out\n" +
+				"7. Quit\n\n" +
+				"10. Micro-Loan";
+	}
+
+	private String showMicroLoanOptions() {
+		return "Please choose from the options below: \n\n" +
+				"1. View My Micro-Loan Dashboard\n" +
+				"2. Apply For New Loan\n" +
+				"3. Provide Money to Loan\n" +
+				"4. Cancel Loan Application\n" +
+				"5. Return to Main Menu";
 	}
 
 	public void clearScreen() {
