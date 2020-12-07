@@ -44,12 +44,8 @@ public class Customer {
 		}
 		s += "\n";
 
-		int accountIndex = 1;
-
 		// Accounts detail
 		for(Account a : accounts) {
-			s += accountIndex + ". ";
-			accountIndex++;
 			s += a.getAccountName();
 			for(int i=0;i<longestAccountNameCount-a.getAccountName().length();i++){
 				s += " ";
