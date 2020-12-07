@@ -4,8 +4,8 @@ public class Account {
 	String accountName;
 	double openingBalance;
 
-	public Account(String username, double amount) {
-		this.accountName = username;
+	public Account(String account, double amount) {
+		this.accountName = account;
 		this.openingBalance = amount;
 	}
 

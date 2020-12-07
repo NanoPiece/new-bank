@@ -26,19 +26,19 @@ public class NewBank {
 	}
 
 	private void addTestData() {
-		Customer bhagy = new Customer();
+		Customer bhagy = new Customer("Bhagy", "bhagy123", "123456");
 		bhagy.addAccount(new Account("Current", 1000.0));
 		bhagy.addAccount(new Account("Savings", 2000.0));
 		bhagy.addAccount(new Account("Checking", 3000000.0));
-		customers.put("Bhagy", bhagy);
+		customers.put(bhagy.getName(), bhagy);
 
-		Customer christina = new Customer();
+		Customer christina = new Customer("Christina", "christina123", "123456");
 		christina.addAccount(new Account("Savings", 1500.0));
-		customers.put("Christina", christina);
+		customers.put(christina.getName(), christina);
 
-		Customer john = new Customer();
+		Customer john = new Customer("John", "john123", "123456");
 		john.addAccount(new Account("Checking", 250.0));
-		customers.put("John", john);
+		customers.put(john.getName(), john);
 	}
 
 	public static NewBank getBank() {
@@ -46,8 +46,17 @@ public class NewBank {
 	}
 
 	public synchronized CustomerID checkLogInDetails(String userName, String password) {
-		if(customers.containsKey(userName)) {
-			return new CustomerID(userName);
+		for (Map.Entry<String, Customer> customer: customers.entrySet()){
+			String username = customer.getValue().getCustomerID().getUserName();
+			String pass = customer.getValue().getCustomerID().getPassword();
+			if(username.equals(userName)){
+				if(pass.equals(password)){
+					CustomerID customerID = customer.getValue().getCustomerID();
+					return customerID;
+				}
+			} else {
+				continue;
+			}
 		}
 		return null;
 	}
@@ -77,6 +86,26 @@ public class NewBank {
 		switch(input.get(0)) {
 			case "CREATEACCOUNT" : return createLoginAccount(request);
 			default : return "FAIL";
+		}
+	}
+
+	private String createLoginAccount(String request) {
+		List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
+		String actualName = input.get(1);
+		String userName = input.get(2);
+		String password = input.get(3);
+
+		//Password validation (Credit: https://java2blog.com/validate-password-java/)
+		boolean validPassword = isValidPassword(password);
+		if (validPassword==false){
+			String output = "Password is not strong enough. Please create a new password:";
+			return output;
+		} else {
+			Customer newCustomer = new Customer(actualName, userName, password);       // create new customer
+			newCustomer.addAccount(new Account("Main", 00.0));    // create a default account for the customer
+			bank.customers.put(actualName, newCustomer);        // add the customer to the list of customers and assign their username
+			String output = "Account: '" + actualName + "' Created. Please Download the Google Authenticator App and use the key NY4A5CPJZ46LXZCP to set up your 2FA";
+			return output;
 		}
 	}
 
@@ -275,53 +304,30 @@ public class NewBank {
 		String upperCaseChars = "(.*[A-Z].*)";
 		if (!password.matches(upperCaseChars ))
 		{
-			System.out.println("Password must have atleast one uppercase character");
+			System.out.println("Password must have at least one uppercase character");
 			isValid = false;
 		}
 		String lowerCaseChars = "(.*[a-z].*)";
 		if (!password.matches(lowerCaseChars ))
 		{
-			System.out.println("Password must have atleast one lowercase character");
+			System.out.println("Password must have at least one lowercase character");
 			isValid = false;
 		}
 		String numbers = "(.*[0-9].*)";
 		if (!password.matches(numbers ))
 		{
-			System.out.println("Password must have atleast one number");
+			System.out.println("Password must have at least one number");
 			isValid = false;
 		}
 		String specialChars = "(.*[@,#,$,%].*$)";
 		if (!password.matches(specialChars ))
 		{
-			System.out.println("Password must have atleast one special character among @#$%");
+			System.out.println("Password must have at least one special character among @#$%");
 			isValid = false;
 		}
 		return isValid;
 	}
 
-	public String createLoginAccount(String request) {
-		List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
-		String userName = input.get(1);
-			/*
-			out.println("Please create a password:");
-			String password = in.readLine();
-
-			//Password validation (Credit: https://java2blog.com/validate-password-java/)
-			boolean validPassword = isValidPassword(password);
-			while (validPassword==false){
-				out.println("Password is not strong enough. Please create a new password:");
-				password = in.readLine();
-			}
-
-			String AccountDetails = userName + "," + password;
-
-			 */
-		Customer newCustomer = new Customer();       // create new customer
-		newCustomer.addAccount(new Account("Main", 00.0));    // create a default account for the customer
-		bank.customers.put(userName, newCustomer);        // add the customer to the list of customers and assign their username
-		String output = "Account: '" + userName + "' Created. Please Download the Google Authenticator App and use the key NY4A5CPJZ46LXZCP to set up your 2FA";
-		return output;
-	}
 
 }
 
