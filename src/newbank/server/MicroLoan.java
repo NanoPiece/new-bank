@@ -4,7 +4,7 @@ public class MicroLoan {
     /* --- Attributes --- */
     private String description;
     private String status;
-    private double requestedAmount;
+    private double totalAmount;
     private double paidAmount;
     private double annualInterestRate;
     private String borrowerID;
@@ -14,10 +14,10 @@ public class MicroLoan {
     /* --- Methods --- */
     // Create a new MicroLoan object
     public MicroLoan(String borrowerID, String description,
-                     double requestedAmount, double annualInterestRate, int loanID) {
+                     double totalAmount, double annualInterestRate, int loanID) {
         this.borrowerID = borrowerID;
         this.description = description;
-        this.requestedAmount = requestedAmount;
+        this.totalAmount = totalAmount;
         this.annualInterestRate = annualInterestRate;
         this.paidAmount = 0.0;
         this.lenderID = null;
@@ -31,8 +31,8 @@ public class MicroLoan {
     /* --- Getters and setters --- */
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
-    public double getRequestedAmount() { return requestedAmount; }
-    public void setRequestedAmount(double requestedAmount) { this.requestedAmount = requestedAmount; }
+    public double getTotalAmount() { return totalAmount; }
+    public void setTotalAmount(double requestedAmount) { this.totalAmount = requestedAmount; }
     public double getPaidAmount() { return paidAmount; }
     public void setPaidAmount(double paidAmount) { this.paidAmount = paidAmount; }
     public double getAnnualInterestRate() { return annualInterestRate; }
