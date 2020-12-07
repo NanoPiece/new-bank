@@ -6,9 +6,11 @@ import java.util.ArrayList;
 public class Customer {
 
 	private ArrayList<Account> accounts;
+	private ArrayList<Integer> associatedMicroLoanID;
 
 	public Customer() {
 		accounts = new ArrayList<>();
+		associatedMicroLoanID = new ArrayList<>();
 	}
 
 	public ArrayList<Account> getAccounts() {
@@ -83,5 +85,13 @@ public class Customer {
 
 	// get number of accounts
 	public int numAccounts() {return accounts.size();}
+
+	// Associate microloan with Customer
+	public void addMicroLoanID(int loanID) {
+		associatedMicroLoanID.add(loanID);
+	}
+	public ArrayList<Integer> getAssociatedMicroLoanID() {
+		return associatedMicroLoanID;
+	}
 
 }
