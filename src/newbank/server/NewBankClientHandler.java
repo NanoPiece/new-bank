@@ -78,7 +78,7 @@ public class NewBankClientHandler extends Thread{
 			Thread.sleep(1500);
 			clearScreen();
 			// authenticate user and get customer ID token from bank for use in subsequent requests
-			CustomerID customer = bank.checkLogInDetails(userName, password);
+			CustomerID customer = bank.checkLogInDetails(userName, password,in,out);
 			// if the user is authenticated then get requests from the user and process them
 			if (customer != null) {
 				//Customer current= bank.getIndex(userName);

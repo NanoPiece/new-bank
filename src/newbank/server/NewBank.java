@@ -1,6 +1,9 @@
 package newbank.server;
 
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Date;
 import java.sql.Timestamp;
 import java.util.*;
@@ -11,12 +14,12 @@ import java.util.Timer.*;
 public class NewBank {
 
 	private static final NewBank bank = new NewBank();
-	public HashMap<String,Customer> customers;
+	public HashMap<String, Customer> customers;
 	//public ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(); // queue for activityQueue method
 	//public ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1); // queue for activityQueue method
 	public Timer timer = new Timer();
 
-	public HashMap<String,TimerTask> scheduledActions = new HashMap<>();
+	public HashMap<String, TimerTask> scheduledActions = new HashMap<>();
 
 	private NewBank() {
 		customers = new HashMap<>();
@@ -39,16 +42,29 @@ public class NewBank {
 		customers.put("John", john);
 	}
 
+
 	public static NewBank getBank() {
 		return bank;
 	}
 
-	public synchronized CustomerID checkLogInDetails(String userName, String password) {
-		if(customers.containsKey(userName)) {
+	public synchronized CustomerID checkLogInDetails(String userName, String password, BufferedReader in, PrintWriter out) {
+		if (customers.containsKey(userName)){
+			return new CustomerID(userName);
+		} else {
+			 while(!customers.containsKey(userName)) {
+				 out.println("Please enter a valid username");
+				 try {
+					 userName = in.readLine();
+				 } catch (IOException e) {
+					 e.printStackTrace();
+				 }
+			 }
 			return new CustomerID(userName);
 		}
-		return null;
+
 	}
+
+
 
 	// commands from the NewBank customer are processed in this method
 	public synchronized String processRequest(CustomerID customer, String request) {
