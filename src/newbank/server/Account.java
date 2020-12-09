@@ -5,8 +5,8 @@ public class Account {
 	double openingBalance;
 	public Boolean isSavingsAccount = false;
 
-	public Account(String username, double amount) {
-		this.accountName = username;
+	public Account(String account, double amount) {
+		this.accountName = account;
 		this.openingBalance = amount;
 	}
 
