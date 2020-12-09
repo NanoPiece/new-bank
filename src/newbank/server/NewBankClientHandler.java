@@ -22,7 +22,8 @@ public class NewBankClientHandler extends Thread{
 	public void run() {
 		// keep getting requests from the client and processing them
 		try {
-			out.println("Please Choose From The Below Options:\n");      // offer log in or create account
+			clearScreen();
+			out.println("Welcome to New Bank\n\nPlease choose from the options below:\n");      // offer log in or create account
 			out.println("1. Log In");
 			out.println("2. Create User");
 			String customerAction = in.readLine();
@@ -48,11 +49,31 @@ public class NewBankClientHandler extends Thread{
 					response = bank.processAccountCreationRequest(request);
 					out.println(response);
 				}
-				run();
+
+				while (response == "The username already exists.\nPlease enter a unique username or type 'esc' to return to the menu screen.") {
+					userName = in.readLine();
+					if (userName.equals("esc")){
+						out.println("Loading menu screen...\n");
+						sleep();
+						break;
+					}
+				}
+				if (!userName.equals("esc")) {
+					clearScreen();
+					out.println("User: '" + userName + "' Created\n");
+					out.println("Loading menu screen...\n");
+					sleep();
+					run();
+				} else if (userName.equals("esc")){
+					out.println("Loading menu screen...\n");
+					sleep();
+					run();
+				}
+
 			}
 			if (customerAction.equals("1")) {
-				// ask for user name
-				out.println("Enter Username");
+				clearScreen();
+				out.println("Enter Username");              // ask for user name
 			}
 			String userName = in.readLine();
 			// ask for password
@@ -80,9 +101,11 @@ public class NewBankClientHandler extends Thread{
 				out.println(showMenu());
 				String request = in.readLine();
 				if (request.equals("1")){
+					clearScreen();
 					String dashboard = bank.processRequest(customer, "1");
 					out.println(dashboard);
 				} else if (request.equals("2")){
+					clearScreen();
 					out.println("Enter the Account that you want to change the name for:  ");
 					String accountName = SelectAccount(customer);
 
@@ -95,9 +118,10 @@ public class NewBankClientHandler extends Thread{
 
 					String response = bank.processRequest(customer, request);
 					out.println(response);
+					returnToMenu();
 
 				} else if(request.equals("3")){
-
+					clearScreen();
 					out.println("Enter the Username of Receiver: ");
 					String receiver = in.readLine();
 
@@ -114,9 +138,10 @@ public class NewBankClientHandler extends Thread{
 
 					String response = bank.processRequest(customer, request);
 					out.println(response);
+					returnToMenu();
 
 				} else if (request.equals("4")){
-
+					clearScreen();
 					out.println("Enter the Account that you want to transfer from:  ");
 					String account_from = SelectAccount(customer);
 
@@ -135,6 +160,7 @@ public class NewBankClientHandler extends Thread{
 					out.println(response);
 
 				} else if (request.equals("5")){
+					clearScreen();
 					out.println("Please select an account type:\n");
 					out.println("1. Current Account");  // take account type
 					out.println("2. Savings Account");
@@ -154,7 +180,6 @@ public class NewBankClientHandler extends Thread{
 					out.println(response);
 
 				} else if (request.equals("7")){
-
 					// cancel a scheduled transfer
 					// show scheduled transfers
 					out.println("Please type in the 6-digit authentication number shown in your Google Authenticator App");
@@ -176,16 +201,23 @@ public class NewBankClientHandler extends Thread{
 
 					response = bank.processRequest(customer, request);
 					out.println(response);
-
-				} else if (request.equals("8")){
+				} else if (request.equals("8")) {
+					clearScreen();
+					out.println("Logging out...");
+					sleep();
+					run();
+				} else if (request.equals("9")){
+					clearScreen();
 					out.println("Thank you and have a nice day!");
 					System.exit(0);
 				} else if(!request.equalsIgnoreCase("6")) {
-					out.println("Wrong choice enter again.");
+					clearScreen();
+					out.println("Invalid Entry\n");
 				} else {
 					System.out.println("Request from " + customer.getKey());
 					String responce = bank.processRequest(customer, request);
 					out.println(responce);
+					returnToMenu();
 				}
 			}
 
@@ -205,7 +237,23 @@ public class NewBankClientHandler extends Thread{
 
 	private String showMenu()
 	{
-		return "1. Show My Accounts\n2. Change Account Names\n3. Transfer to another user\n4. Transfer to another owned account\n5. Create New Account\n6. Show scheduled transfers\n7. Cancel a scheduled transfer\n8. Quit";
+		return "1. Show My Accounts\n2. Change Account Names\n3. Transfer to another user\n4. Transfer to another owned account\n5. Create New Account\n6. Show scheduled transfers\n7. Cancel a scheduled transfer\n8. Log out\n9. Quit";
+	}
+
+	public void clearScreen() {
+		out.print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"); // utilised while this function will not work in IntelliJ
+		out.print("\033[H\033[2J");
+		out.flush();
+	}
+
+	private void returnToMenu() throws InterruptedException { ;
+		out.println("\nReturning to menu screen...");
+		sleep();
+		clearScreen();
+		showMenu();
+	}
+	private void sleep() throws InterruptedException {
+		Thread.sleep(3000);
 	}
 
 	private String SelectAccount(CustomerID customer) throws Exception {

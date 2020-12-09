@@ -77,6 +77,8 @@ public class NewBank {
 		return null;
 	}
 
+
+
 	// commands from the NewBank customer are processed in this method
 	public synchronized String processRequest(CustomerID customer, String request) throws Exception {
 		if(customers.containsKey(customer.getKey())) {
@@ -114,8 +116,12 @@ public class NewBank {
 
 		//Password validation (Credit: https://java2blog.com/validate-password-java/)
 		boolean validPassword = isValidPassword(password);
+		boolean validUsername = isValidUserName(userName);
 		if (validPassword==false){
 			String output = "Password is not strong enough. Please create a new password:";
+			return output;
+		} else if (validUsername==false) {
+			String output = "The username already exists.\nPlease enter a unique username or type 'esc' to return to the menu screen.";
 			return output;
 		} else {
 			Customer newCustomer = new Customer(actualName, userName, password);       // create new customer
@@ -324,6 +330,18 @@ public class NewBank {
 		return correct;
 	}
 
+	public boolean isValidUserName(String userName) {
+		for (Map.Entry<String, Customer> customer: customers.entrySet()){
+			String username = customer.getValue().getCustomerID().getUserName();
+			if(username.equals(userName)){
+				return false;
+			} else {
+				continue;
+			}
+		}
+		return true;
+	}
+
 	//Password validation (Credit: https://java2blog.com/validate-password-java/)
 	public static boolean isValidPassword(String password)
 	{
@@ -359,6 +377,8 @@ public class NewBank {
 		}
 		return isValid;
 	}
+
+
 
 
 }
