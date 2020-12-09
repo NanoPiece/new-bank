@@ -14,15 +14,31 @@ public class NewBank {
 
 	private static final NewBank bank = new NewBank();
 	public HashMap<String,Customer> customers;
-	//public ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(); // queue for activityQueue method
-	//public ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1); // queue for activityQueue method
-	public Timer timer = new Timer();
 
+	// scheduler for applying interest
+	public double interestRate = 0.02;
+	public ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+
+	// scheduled actions
+	public Timer timer = new Timer();
 	public HashMap<String,TimerTask> scheduledActions = new HashMap<>();
 
 	private NewBank() {
 		customers = new HashMap<>();
 		addTestData();
+
+		// schedule interest payments
+		Calendar startDate = Calendar.getInstance();
+		startDate.set(2021, Calendar.JANUARY, 1);
+		long oneYearInMilliseconds = 31556952000L;
+		long intialDelay = (startDate.getTimeInMillis()-System.currentTimeMillis());
+		scheduler.scheduleAtFixedRate(new Runnable() {
+			@Override
+			public void run() {
+				payInterest(interestRate);
+				System.out.println("HELLO");
+			}
+		}, intialDelay, oneYearInMilliseconds, TimeUnit.MILLISECONDS);
 	}
 
 	private void addTestData() {
@@ -80,6 +96,7 @@ public class NewBank {
 		}
 		return "FAIL";
 	}
+
 
 	public synchronized String processAccountCreationRequest(String request) throws Exception {
 		List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
@@ -196,7 +213,7 @@ public class NewBank {
 	private void queueAction(CustomerID customer, String request, String action) {
 
 		// time delay in milliseconds (300000 = 5 minutes)
-		int delay = 300000;
+		int delay = 30000;
 
 		// switch to handle different functions
 		if(customers.containsKey(customer.getKey())) {
@@ -284,6 +301,21 @@ public class NewBank {
 		// if not found then return error message
 		return "Not a valid ID!";
 
+	}
+
+	// add yearly interest
+	public void payInterest(double rate) {
+		for (String customerName: customers.keySet()) {
+			for (Account account: customers.get(customerName).getAllAccounts()) {
+				if (account.isSavingsAccount()) {
+					// calculate interest to be added
+					double interest = rate * account.getOpeningBalance();
+
+					// add interest to account
+					account.setAmount(account.getOpeningBalance() + interest);
+				}
+			}
+		}
 	}
 
 	public boolean run2FA(int authNumber) throws Exception {
