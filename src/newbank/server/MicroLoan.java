@@ -21,7 +21,7 @@ public class MicroLoan {
         this.annualInterestRate = annualInterestRate;
         this.paidAmount = 0.0;
         this.lenderID = null;
-        this.status = "Applied";
+        this.status = "Draft";
         this.loanID = loanID;
     }
 
@@ -40,7 +40,7 @@ public class MicroLoan {
     public String getBorrowerID() { return borrowerID; }
     public void  setBorrowerID(String borrowerID) { this.borrowerID = borrowerID; }
     public String getLenderID() { return lenderID; }
-    public void setLenderID() { this.lenderID = lenderID; }
+    public void setLenderID(String lenderID) { this.lenderID = lenderID; }
     public String getStatus() { return status; };
     public void setStatus(String status) { this.status = status; }
     public int getLoanID() { return loanID;};

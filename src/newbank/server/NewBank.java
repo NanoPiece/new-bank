@@ -14,6 +14,7 @@ public class NewBank {
 	private static final NewBank bank = new NewBank();
 	public HashMap<String,Customer> customers;
 	public HashMap<String,MicroLoan> microLoans;
+	public int microLoansIndex = 1;
 	//public ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(); // queue for activityQueue method
 	//public ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1); // queue for activityQueue method
 	public Timer timer = new Timer();
@@ -42,14 +43,16 @@ public class NewBank {
 		customers.put("John", john);
 
 		MicroLoan bhagy1 = new MicroLoan("Bhagy","Buy a new car",
-				5000.0, 3.0, microLoans.size()+1);
+				5000.0, 3.0, microLoansIndex);
 		customers.get("Bhagy").addMicroLoanID(bhagy1.getLoanID());
 		microLoans.put(Integer.toString(bhagy1.getLoanID()),bhagy1);
+		microLoansIndex +=1;
 
 		MicroLoan bhagy2 = new MicroLoan("Bhagy","Buy Playstation 5",
-				1200.0, 5.0, microLoans.size()+1);
+				100.0, 5.0, microLoansIndex);
 		customers.get("Bhagy").addMicroLoanID(bhagy2.getLoanID());
 		microLoans.put(Integer.toString(bhagy2.getLoanID()),bhagy2);
+		microLoansIndex +=1;
 	}
 
 	public static NewBank getBank() {
@@ -77,6 +80,10 @@ public class NewBank {
 				case "6" : return showQueue();
 				case "7" : return cancelAction(request);
 				case "MICROLOAN-1" : return showMicroLoanDashboard(customer);
+				case "MICROLOAN-2" : return submitLoanApplication(customer, request);
+				case "MICROLOAN-3A" : return showAllLoanApplications(customer);
+				case "MICROLOAN-3B" : return acceptLoanOffer(customer, request);
+				case "MICROLOAN-4" : return cancelLoanApplication(customer, request);
 				case "DISPLAYSELECTABLEACCOUNTS" : return displaySelectableAccounts(customer);
 				case "NUMBEROFUSERACCOUNTS": return String.valueOf(customers.get(customer.getKey()).numAccounts());
 				default : return "FAIL";
@@ -344,18 +351,100 @@ public class NewBank {
 		return output;
 	}
 
-	private String submitLoanApplication() {
+	private String submitLoanApplication(CustomerID customer, String request) {
+		// Convert request from String to List
+		// index: 0 = requestCommand, 1 = Description, 2 = Loan Amount, 3 = interest rate
+		List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
+		MicroLoan newLoan = new MicroLoan(customer.getKey(), input.get(1),
+				Double.parseDouble(input.get(2)), Double.parseDouble(input.get(3)), microLoansIndex);
+		customers.get(customer.getKey()).addMicroLoanID(newLoan.getLoanID());
+		microLoans.put(Integer.toString(newLoan.getLoanID()),newLoan);
+		microLoansIndex += 1;
 		return "Your loan application has been submitted.";
 	}
 
-	private String submitLoanOffer() {
-		return "Your interest rate offer has been sent to the applicant";
+	private String showAllLoanApplications(CustomerID customer) {
+		// Header
+		String header = "ID" + "   " + "Borrower" + "     " + "Lender" + "     " + "Description" +
+				"               " + "Total Amount" + "   " + "Paid Amount" + "   " +
+				"Interest (%/Y)" + "   " + "Status" + "\n";
+		String output = "";
+		output += header;
+		// Divider
+		for (int i=0; i<header.length(); i++){
+			output += "-";
+		}
+		output += "-----";
+		output += "\n";
+		// Entries
+		for (Map.Entry<String, MicroLoan> entry : microLoans.entrySet() ) {
+			if (entry.getValue().getLenderID() == null && !entry.getValue().getBorrowerID().equals(customer.getKey())) {
+				MicroLoan loan = entry.getValue();
+				output += Integer.toString(loan.getLoanID());
+				output += emptySpaceNeedForMicroLoanDashboard("ID", Integer.toString(loan.getLoanID()),
+						3);
+				output += loan.getBorrowerID();
+				output += emptySpaceNeedForMicroLoanDashboard("Borrower", loan.getBorrowerID(),
+						5);
+				output += loan.getLenderID();
+				output += emptySpaceNeedForMicroLoanDashboard("Lender", loan.getLenderID(),
+						5);
+				output += loan.getDescription();
+				output += emptySpaceNeedForMicroLoanDashboard("Description", loan.getDescription(),
+						15);
+				output += loan.getTotalAmount();
+				output += emptySpaceNeedForMicroLoanDashboard("Total Amount",
+						Double.toString(loan.getTotalAmount()), 3);
+				output += loan.getPaidAmount();
+				output += emptySpaceNeedForMicroLoanDashboard("Paid Amount",
+						Double.toString(loan.getPaidAmount()), 3);
+				output += loan.getAnnualInterestRate();
+				output += emptySpaceNeedForMicroLoanDashboard("Interest (%/Y)",
+						Double.toString(loan.getAnnualInterestRate()), 3);
+				output += loan.getStatus();
+				output += "\n";
+			}
+		}
+
+		return output;
 	}
 
-	private String acceptLoanOffer() {
-		return "You have accepted the loan offer. The money is now wired to your account and " +
-				"the interest rate calculation will begin now.";
+	private String acceptLoanOffer(CustomerID customer, String request) {
+		// Convert request from String to List
+		// index: 0 = requestCommand, 1 = selected microloan key
+		List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
+		// Edit microloan details
+		MicroLoan loan = microLoans.get(input.get(1));
+		loan.setLenderID(customer.getKey());
+		loan.setStatus("Active");
+		// Edit customer detail
+		Customer lender = customers.get(customer.getKey());
+		lender.addMicroLoanID(loan.getLoanID());
+		// Complete money transfer
+		Customer borrower = customers.get(loan.getBorrowerID());
+		ArrayList<Account> lenderAccounts = lender.getAllAccounts();
+		ArrayList<Account> borrowerAccounts = borrower.getAllAccounts();
+		lender.getAccount(lenderAccounts.get(0).getAccountName()).withdraw(loan.getTotalAmount());
+		borrower.getAccount(borrowerAccounts.get(0).getAccountName()).deposit(loan.getTotalAmount());
+		// Return complete message
+		return "You have accepted the loan application. " +
+				"The money is now wired to the lender's default account " +
+				"and the interest rate calculation will begin now.";
 	}
 
+	private String cancelLoanApplication(CustomerID customer, String request) {
+		// Convert request from String to List
+		// index: 0 = requestCommand, 1 = selected microloan ID
+		List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
+		MicroLoan loan = microLoans.get(input.get(1));
+		if (loan.getStatus().equals("Draft")) {
+			Customer borrower = customers.get(customer.getKey());
+			borrower.removeMicroLoanID(Integer.parseInt(input.get(1)));
+			microLoans.remove(input.get(1));
+			return "Your loan application has been canceled";
+		} else {
+			return "This loan can no longer be canceled.";
+		}
+	}
 }
 
