@@ -6,14 +6,24 @@ import java.util.ArrayList;
 public class Customer {
 
 	private ArrayList<Account> accounts;
+	private CustomerID customerID;
+	private String Name;
+	private String username;
+	private String pass;
 
-	public Customer() {
+	public Customer(String actualName, String userName, String password) {
 		accounts = new ArrayList<>();
+		customerID = new CustomerID(actualName, userName, password);
+		Name = customerID.getKey();
 	}
 
-	public ArrayList<Account> getAccounts() {
-		return accounts;
+	public CustomerID getCustomerID() {
+		return customerID;
 	}
+	public String getName() {
+		return Name;
+	}
+
 
 	// Return the list of accounts of a customer as a string
 	public String accountsToString() {
