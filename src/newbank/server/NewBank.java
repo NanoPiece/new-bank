@@ -84,6 +84,7 @@ public class NewBank {
 				case "MICROLOAN-3A" : return showAllLoanApplications(customer);
 				case "MICROLOAN-3B" : return acceptLoanOffer(customer, request);
 				case "MICROLOAN-4" : return cancelLoanApplication(customer, request);
+				case "MICROLOAN-5" : return repayLoan(customer, request);
 				case "DISPLAYSELECTABLEACCOUNTS" : return displaySelectableAccounts(customer);
 				case "NUMBEROFUSERACCOUNTS": return String.valueOf(customers.get(customer.getKey()).numAccounts());
 				default : return "FAIL";
@@ -289,7 +290,7 @@ public class NewBank {
 	private String showMicroLoanDashboard(CustomerID customer) {
 		// Header
 		String header = "ID" + "   " + "Borrower" + "     " + "Lender" + "     " + "Description" +
-						"               " + "Total Amount" + "   " + "Paid Amount" + "   " +
+						"               " + "Total Amount" + "   " + "Outstanding Amount" + "   " +
 						"Interest (%/Y)" + "   " + "Status" + "\n";
 		String output = "";
 		output += header;
@@ -319,9 +320,9 @@ public class NewBank {
 			output += loan.getTotalAmount();
 			output += emptySpaceNeedForMicroLoanDashboard("Total Amount",
 					Double.toString(loan.getTotalAmount()), 3);
-			output += loan.getPaidAmount();
-			output += emptySpaceNeedForMicroLoanDashboard("Paid Amount",
-					Double.toString(loan.getPaidAmount()), 3);
+			output += loan.getOutstandingAmount();
+			output += emptySpaceNeedForMicroLoanDashboard("Outstanding Amount",
+					Double.toString(loan.getOutstandingAmount()), 3);
 			output += loan.getAnnualInterestRate();
 			output += emptySpaceNeedForMicroLoanDashboard("Interest (%/Y)",
 					Double.toString(loan.getAnnualInterestRate()), 3);
@@ -366,7 +367,7 @@ public class NewBank {
 	private String showAllLoanApplications(CustomerID customer) {
 		// Header
 		String header = "ID" + "   " + "Borrower" + "     " + "Lender" + "     " + "Description" +
-				"               " + "Total Amount" + "   " + "Paid Amount" + "   " +
+				"               " + "Total Amount" + "   " + "Outstanding Amount" + "   " +
 				"Interest (%/Y)" + "   " + "Status" + "\n";
 		String output = "";
 		output += header;
@@ -395,9 +396,9 @@ public class NewBank {
 				output += loan.getTotalAmount();
 				output += emptySpaceNeedForMicroLoanDashboard("Total Amount",
 						Double.toString(loan.getTotalAmount()), 3);
-				output += loan.getPaidAmount();
-				output += emptySpaceNeedForMicroLoanDashboard("Paid Amount",
-						Double.toString(loan.getPaidAmount()), 3);
+				output += loan.getOutstandingAmount();
+				output += emptySpaceNeedForMicroLoanDashboard("Outstanding Amount",
+						Double.toString(loan.getOutstandingAmount()), 3);
 				output += loan.getAnnualInterestRate();
 				output += emptySpaceNeedForMicroLoanDashboard("Interest (%/Y)",
 						Double.toString(loan.getAnnualInterestRate()), 3);
@@ -444,6 +445,41 @@ public class NewBank {
 			return "Your loan application has been canceled";
 		} else {
 			return "This loan can no longer be canceled.";
+		}
+	}
+
+	private String repayLoan(CustomerID customer, String request) {
+		// Convert request from String to List
+		// index: 0 = requestCommand, 1 = selected microloan ID, 2 = repayment amount
+		List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
+		MicroLoan loan = microLoans.get(input.get(1));
+		Double repayAmount = Double.parseDouble(input.get(2));
+		if (loan.getStatus().equals("Active")) {
+			Customer borrower = customers.get(customer.getKey());
+			Customer lender = customers.get(loan.getLenderID());
+			// Validate appropriate amount
+			if (repayAmount <= loan.getOutstandingAmount()) {
+				// Complete money transfer
+				ArrayList<Account> lenderAccounts = lender.getAllAccounts();
+				ArrayList<Account> borrowerAccounts = borrower.getAllAccounts();
+				lender.getAccount(lenderAccounts.get(0).getAccountName()).deposit(repayAmount);
+				borrower.getAccount(borrowerAccounts.get(0).getAccountName()).withdraw(repayAmount);
+				// Update loan status and attributes
+				loan.updatePaidAmount(repayAmount);
+				loan.updateOutstandingAmount();
+				if (loan.getOutstandingAmount() == 0.0) {
+					loan.setStatus("Closed");
+					return "You have fully repaid your loan. This loan will be closed.";
+				} else {
+					String amount = Double.toString(loan.getOutstandingAmount());
+					return "Repayment has been successful. The loan's current outstanding amount is: " + amount;
+				}
+			} else {
+				return "You tried to repay more than the total amount outstanding. Process has not been completed. " +
+						"Please try again.";
+			}
+		} else {
+			return "This loan is not currently active. Please select an active loan.";
 		}
 	}
 }

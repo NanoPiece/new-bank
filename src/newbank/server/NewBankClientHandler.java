@@ -203,7 +203,7 @@ public class NewBankClientHandler extends Thread{
 					} else if (request.equals("10")) {
 						clearScreen();
 						out.println("Welcome to Micro-Loan!");
-						while (!request.equals("5")) {
+						while (!request.equals("6")) {
 							out.println(showMicroLoanOptions());
 							request = in.readLine();
 							if (request.equals("1")){
@@ -293,7 +293,56 @@ public class NewBankClientHandler extends Thread{
 								response = bank.processRequest(customer, request);
 								out.println(response);
 							} else if (request.equals("5")) {
-								// 5. Return to Main Menu
+								// 5. Repay loan
+								clearScreen();
+								request = "MICROLOAN-1";
+								String response = bank.processRequest(customer, request);
+								out.println("Please select the loan that you want to repay by typing in the ID.");
+								out.println(response);
+								boolean validInput = false;
+								String selectedMicroLoan = "";
+								// Confirm ID input
+								while (!validInput){
+									selectedMicroLoan = in.readLine();
+									String lines[] = response.split("\\r?\\n");
+									String reply = "Please enter a valid ID.";
+									for (int i=2; i<lines.length; i++) {
+										String line[] = lines[i].split("\\s+");
+										if (line[0].equals(selectedMicroLoan)) {
+											if (line[line.length-1].equals("Active")) {
+												validInput = true;
+											} else {
+												reply = "Selected loan is not active and cannot be repaid. Please try" +
+														" another one.";
+											}
+										}
+									}
+									if (!validInput) {
+										out.println(reply);
+									}
+								}
+								// Confirm amount
+								out.println("Please enter the amount you would like to repay (Up to total amount " +
+										"outstanding):");
+								String repayAmount = "";
+								Boolean validated = false;
+								while (!validated){
+									try {
+										repayAmount = in.readLine();
+										Double n = Double.parseDouble(repayAmount);
+										if (n > 0) {
+											validated = true;
+										}
+									} catch (Exception e) {
+										out.println("Please enter a valid number");
+									}
+								}
+								// Send request
+								request = "MICROLOAN-5" + "," + selectedMicroLoan + "," + repayAmount;
+								response = bank.processRequest(customer, request);
+								out.println(response);
+							} else if (request.equals("6")) {
+								// 6. Return to Main Menu
 								returnToMenu();
 							} else {
 								// Unrecognisable input
@@ -347,7 +396,8 @@ public class NewBankClientHandler extends Thread{
 				"2. Apply For New Loan\n" +
 				"3. Provide Money to Loan\n" +
 				"4. Cancel Loan Application\n" +
-				"5. Return to Main Menu";
+				"5. Repay loan\n" +
+				"6. Return to Main Menu";
 	}
 
 	private Boolean checkValidInputRange(String amount, Double min, Double max) {
