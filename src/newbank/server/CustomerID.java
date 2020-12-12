@@ -3,27 +3,18 @@ package newbank.server;
 import java.util.Random;
 
 public class CustomerID {
-	private String key;
+	private String Name;
 	private String userName;
 	private String password;
 	private String IBAN;
 
-	public CustomerID(String key, String userName, String password) {
-		this.key = key; this.userName = userName; this.password = password; this.IBAN = generateIBAN();
+	public CustomerID(String name, String userName, String password, String iban) {
+		this.Name = name; this.userName = userName; this.password = password; this.IBAN = iban;
 	}
 
 
-	public static String generateIBAN() {
-		int accountNumber = 10000000;
-		Random ID = new Random();
-		accountNumber += ID.nextInt(90000000);
-		String IBAN = "GB24NWBK999999" + accountNumber;
-		return IBAN;
-	}
-
-
-	public String getKey() {
-		return key;
+	public String getName() {
+		return Name;
 	}
 
 	public String getUserName() {

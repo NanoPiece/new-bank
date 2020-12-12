@@ -105,26 +105,13 @@ public class NewBankClientHandler extends Thread{
 						String dashboard = bank.processRequest(customer, "1");
 						out.println(dashboard);
 						returnToMenu();
-					} else if (request.equals("2")){
-						clearScreen();
-						out.println("Enter the Account that you want to change the name for:  ");
-						String accountName = SelectAccount(customer);
-
-						// Request new account name from user
-						out.println("Please type in the new name for your selected account.");
-						String newAccountName = in.readLine();
-						newAccountName = newAccountName.trim();
-
-						request += "," + accountName + "," + newAccountName;
-
-						String response = bank.processRequest(customer, request);
-						out.println(response);
-						returnToMenu();
-
 					} else if(request.equals("3")){
 						clearScreen();
-						out.println("Enter the Username of Receiver: ");
+						out.println("Enter the Name of Receiver: ");
 						String receiver = in.readLine();
+
+						out.println("Enter the IBAN of Receiver: ");
+						String iban = in.readLine();
 
 						out.println("Enter the Amount to transfer:  ");
 						String amount_totransfer = in.readLine();
@@ -135,7 +122,7 @@ public class NewBankClientHandler extends Thread{
 						out.println("Please type in the 6-digit authentication number shown in your Google Authenticator App");
 						String authNumber = in.readLine();
 
-						request += "," + receiver + "," + amount_totransfer + "," + accountName + "," + authNumber;;
+						request += "," + receiver + "," + iban + "," + amount_totransfer + "," + accountName + "," + authNumber;
 
 						String response = bank.processRequest(customer, request);
 						out.println(response);
@@ -404,7 +391,7 @@ public class NewBankClientHandler extends Thread{
 						clearScreen();
 						out.println("Invalid Entry\n");
 					} else {
-						System.out.println("Request from " + customer.getKey());
+						System.out.println("Request from " + customer.getName());
 						String responce = bank.processRequest(customer, request);
 						out.println(responce);
 						returnToMenu();
@@ -429,7 +416,6 @@ public class NewBankClientHandler extends Thread{
 	showMenu() {
 		return "Please choose from the options below: \n\n" +
 				"1. Show My Accounts\n" +
-				"2. Change Account Names\n" +
 				"3. Transfer to another user\n" +
 				"4. Transfer to another owned account\n" +
 				"5. Create New Account\n" +

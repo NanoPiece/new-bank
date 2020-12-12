@@ -24,6 +24,7 @@ public class NewBank {
 	// scheduled actions
 	public Timer timer = new Timer();
 	public HashMap<String,TimerTask> scheduledActions = new HashMap<>();
+	private Customer Receiver;
 
 	private NewBank() {
 		customers = new HashMap<>();
@@ -45,28 +46,28 @@ public class NewBank {
 	}
 
 	private void addTestData() {
-		Customer bhagy = new Customer("Bhagy", "bhagy123", "123456");
+		Customer bhagy = new Customer("Bhagy", "bhagy123", "123456", "GB24NWBK99999911111111");
 		bhagy.addAccount(new Account("Current", 1000.0));
 		bhagy.addAccount(new Account("Savings", 2000.0));
 		bhagy.addAccount(new Account("Checking", 3000000.0));
-		customers.put(bhagy.getName(), bhagy);
+		customers.put(bhagy.getIBAN(), bhagy);
 
-		Customer christina = new Customer("Christina", "christina123", "123456");
-		christina.addAccount(new Account("Savings", 1500.0));
-		customers.put(christina.getName(), christina);
+		Customer john = new Customer("John", "john123456", "123456", "GB24NWBK99999922222222");
+		john.addAccount(new Account("Savings", 1500.0));
+		customers.put(john.getIBAN(), john);
 
-		Customer john = new Customer("John", "john123", "123456");
-		john.addAccount(new Account("Checking", 250.0));
-		customers.put(john.getName(), john);
+		Customer john2 = new Customer("John", "john123", "123456", "GB24NWBK99999933333333");
+		john2.addAccount(new Account("Checking", 250.0));
+		customers.put(john2.getIBAN(), john2);
 
 		MicroLoan bhagy1 = new MicroLoan("Bhagy","Buy a new car",
 				5000.0, 3.0, microLoans.size()+1);
-		customers.get(bhagy.getName()).addMicroLoanID(bhagy1.getLoanID());
+		customers.get(bhagy.getIBAN()).addMicroLoanID(bhagy1.getLoanID());
 		microLoans.put(Integer.toString(bhagy1.getLoanID()),bhagy1);
 
 		MicroLoan bhagy2 = new MicroLoan("Bhagy","Buy Playstation 5",
 				1200.0, 5.0, microLoans.size()+1);
-		customers.get(bhagy.getName()).addMicroLoanID(bhagy2.getLoanID());
+		customers.get(bhagy.getIBAN()).addMicroLoanID(bhagy2.getLoanID());
 		microLoans.put(Integer.toString(bhagy2.getLoanID()),bhagy2);
 	}
 
@@ -92,11 +93,10 @@ public class NewBank {
 
 	// commands from the NewBank customer are processed in this method
 	public synchronized String processRequest(CustomerID customer, String request) throws Exception {
-		if(customers.containsKey(customer.getKey())) {
+		if(customers.containsKey(customer.getIBAN())) {
 			List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
 			switch(input.get(0)) {
 				case "1" : return showMyAccounts(customer);
-				case "2" : return changeMyAccountName(customer, request);
 				case "3" : return transferToExternalUser(customer, request);
 				case "4" : return transferToOtherAccount(customer, request);
 				case "5" : return createNewAccount(customer, request);
@@ -110,7 +110,7 @@ public class NewBank {
 				case "MICROLOAN-4" : return cancelLoanApplication(customer, request);
 				case "MICROLOAN-5" : return repayLoan(customer, request);
 				case "DISPLAYSELECTABLEACCOUNTS" : return displaySelectableAccounts(customer);
-				case "NUMBEROFUSERACCOUNTS": return String.valueOf(customers.get(customer.getKey()).numAccounts());
+				case "NUMBEROFUSERACCOUNTS": return String.valueOf(customers.get(customer.getIBAN()).numAccounts());
 				default : return "FAIL";
 			}
 		}
@@ -125,11 +125,20 @@ public class NewBank {
 		}
 	}
 
+	public String generateIBAN() {
+		int accountNumber = 10000000;
+		Random ID = new Random();
+		accountNumber += ID.nextInt(90000000);
+		String IBAN = "GB24NWBK999999" + accountNumber;
+		return IBAN;
+	}
+
 	private String createLoginAccount(String request) {
 		List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
 		String actualName = input.get(1);
 		String userName = input.get(2);
 		String password = input.get(3);
+		String iban = generateIBAN();
 
 		//Password validation (Credit: https://java2blog.com/validate-password-java/)
 		boolean validPassword = isValidPassword(password);
@@ -141,32 +150,20 @@ public class NewBank {
 			String output = "The username already exists.\nPlease enter a unique username or type 'esc' to return to the menu screen.";
 			return output;
 		} else {
-			Customer newCustomer = new Customer(actualName, userName, password);       // create new customer
+			Customer newCustomer = new Customer(actualName, userName, password, iban);       // create new customer
 			newCustomer.addAccount(new Account("Main", 00.0));    // create a default account for the customer
-			bank.customers.put(actualName, newCustomer);        // add the customer to the list of customers and assign their username
+			bank.customers.put(iban, newCustomer);        // add the customer to the list of customers and assign their username
 			String output = "Account: '" + actualName + "' Created. Please Download the Google Authenticator App and use the key NY4A5CPJZ46LXZCP to set up your 2FA";
 			return output;
 		}
 	}
 
 	private String showMyAccounts(CustomerID customer) {
-		return (customers.get(customer.getKey())).accountsToString();
-	}
-
-	private String changeMyAccountName(CustomerID customer, String request) {
-		// Convert request from String to List
-		// index: 0 = requestCommand, 1 = accountName, 2 = newAccountName
-		List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
-		// get account
-		Account account = customers.get(customer.getKey()).getAccount(input.get(1));
-		// change account name
-		account.setAccountName(input.get(2));
-
-		return "You account name has been modified.";
+		return (customers.get(customer.getIBAN())).accountsToString();
 	}
 
 	private String displaySelectableAccounts(CustomerID customer) {
-		ArrayList<Account> accounts = customers.get(customer.getKey()).getAllAccounts();
+		ArrayList<Account> accounts = customers.get(customer.getIBAN()).getAllAccounts();
 		String output = "";
 		for(int i=1; i<= accounts.size(); i++){
 			String account = accounts.get(i-1).getAccountName();
@@ -177,15 +174,17 @@ public class NewBank {
 
 	private String transferToExternalUser(CustomerID customer, String request) throws Exception {
 		List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
-		Customer Receiver = bank.getIndex(input.get(1));
+
+		Customer Receiver = bank.getIndex(input.get(2));
 
 		if(Receiver==null)
 		{
 			return "No user exists!";
 		}
-		int authnumber = Integer.parseInt(input.get(4));
+
+		int authnumber = Integer.parseInt(input.get(5));
 		boolean correct = run2FA(authnumber);
-		if (correct==true){
+		if (correct == true) {
 			queueAction(customer, request, "transferToExternalUser");
 			return "Transfer to external user scheduled";
 		}
@@ -198,12 +197,12 @@ public class NewBank {
 		int authnumber = Integer.parseInt(input.get(4));
 		boolean correct = run2FA(authnumber);
 		if (correct==true){
-			if(customers.get(customer.getKey()).getAllAccounts().size()<2)
+			if(customers.get(customer.getIBAN()).getAllAccounts().size()<2)
 			{
 				return "You don't have 2 accounts!";
 			}
-			Account account_from = customers.get(customer.getKey()).getAccount(input.get(1));
-			Account account_to = customers.get(customer.getKey()).getAccount(input.get(2));
+			Account account_from = customers.get(customer.getIBAN()).getAccount(input.get(1));
+			Account account_to = customers.get(customer.getIBAN()).getAccount(input.get(2));
 			Double amount = Double.valueOf(input.get(3));
 			account_from.transfer(account_to, amount);
 			return "Internal transfer to other account Complete";
@@ -216,7 +215,7 @@ public class NewBank {
 		List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
 		System.out.println(input.get(1));
 		String accountType = input.get(1);
-		Customer thisCustomer = customers.get(customer.getKey());
+		Customer thisCustomer = customers.get(customer.getIBAN());
 		if (accountType.equals("1")) {
 			accountType = "Current Account";
 		}
@@ -233,7 +232,7 @@ public class NewBank {
 		//System.out.println(input.get(1));
 		int accountToClose = Integer.parseInt(input.get(1));
 		int accountToTransfer = Integer.parseInt(input.get(2));
-		Customer thisCustomer = customers.get(customer.getKey());
+		Customer thisCustomer = customers.get(customer.getIBAN());
 
 		int accountIndex = 1;
 		Account transferAccount = null;
@@ -276,20 +275,20 @@ public class NewBank {
 		int delay = 300000;
 
 		// switch to handle different functions
-		if(customers.containsKey(customer.getKey())) {
+		if(customers.containsKey(customer.getIBAN())) {
 			switch(action) {
 				case "transferToExternalUser" :
 
 					// get recipient, customer and account
 					List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
-					Customer Receiver = bank.getIndex(input.get(1));
-					Double amount = Double.valueOf(input.get(2));
-					Account account = customers.get(customer.getKey()).getAccount(input.get(3));
+					Customer Receiver = bank.getIndex(input.get(2));
+					Double amount = Double.valueOf(input.get(3));
+					Account account = customers.get(customer.getIBAN()).getAccount(input.get(3));
 
 					// build id string
 					Date date= new Date();
 					Timestamp ts = new Timestamp(date.getTime());
-					String id = customer.getKey() + "," + input.get(3) + "," + input.get(1) + "," + input.get(2) + "," + ts.toString().replace(' ', '-');
+					String id = customer.getIBAN() + "," + input.get(4) + "," + input.get(1) + "," + input.get(3) + "," + ts.toString().replace(' ', '-');
 
 					// create task
 					TimerTask task = new TimerTask() {
@@ -448,7 +447,7 @@ public class NewBank {
 		output += "\n";
 		// Content
 		ArrayList<Integer> associatedMicroLoanID =
-				(customers.get(customer.getKey())).getAssociatedMicroLoanID();
+				(customers.get(customer.getIBAN())).getAssociatedMicroLoanID();
 		for (Integer loanID : associatedMicroLoanID) {
 			MicroLoan loan = microLoans.get(Integer.toString(loanID));
 			output += Integer.toString(loan.getLoanID());
@@ -502,9 +501,9 @@ public class NewBank {
 		// Convert request from String to List
 		// index: 0 = requestCommand, 1 = Description, 2 = Loan Amount, 3 = interest rate
 		List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
-		MicroLoan newLoan = new MicroLoan(customer.getKey(), input.get(1),
+		MicroLoan newLoan = new MicroLoan(customer.getName(), input.get(1),
 				Double.parseDouble(input.get(2)), Double.parseDouble(input.get(3)), microLoansIndex);
-		customers.get(customer.getKey()).addMicroLoanID(newLoan.getLoanID());
+		customers.get(customer.getIBAN()).addMicroLoanID(newLoan.getLoanID());
 		microLoans.put(Integer.toString(newLoan.getLoanID()),newLoan);
 		microLoansIndex += 1;
 		return "Your loan application has been submitted.";
@@ -525,7 +524,7 @@ public class NewBank {
 		output += "\n";
 		// Entries
 		for (Map.Entry<String, MicroLoan> entry : microLoans.entrySet() ) {
-			if (entry.getValue().getLenderID() == null && !entry.getValue().getBorrowerID().equals(customer.getKey())) {
+			if (entry.getValue().getLenderID() == null && !entry.getValue().getBorrowerID().equals(customer.getIBAN())) {
 				MicroLoan loan = entry.getValue();
 				output += Integer.toString(loan.getLoanID());
 				output += emptySpaceNeedForMicroLoanDashboard("ID", Integer.toString(loan.getLoanID()),
@@ -562,10 +561,10 @@ public class NewBank {
 		List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
 		// Edit microloan details
 		MicroLoan loan = microLoans.get(input.get(1));
-		loan.setLenderID(customer.getKey());
+		loan.setLenderID(customer.getIBAN());
 		loan.setStatus("Active");
 		// Edit customer detail
-		Customer lender = customers.get(customer.getKey());
+		Customer lender = customers.get(customer.getIBAN());
 		lender.addMicroLoanID(loan.getLoanID());
 		// Complete money transfer
 		Customer borrower = customers.get(loan.getBorrowerID());
@@ -585,7 +584,7 @@ public class NewBank {
 		List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
 		MicroLoan loan = microLoans.get(input.get(1));
 		if (loan.getStatus().equals("Draft")) {
-			Customer borrower = customers.get(customer.getKey());
+			Customer borrower = customers.get(customer.getIBAN());
 			borrower.removeMicroLoanID(Integer.parseInt(input.get(1)));
 			microLoans.remove(input.get(1));
 			return "Your loan application has been canceled";
@@ -601,7 +600,7 @@ public class NewBank {
 		MicroLoan loan = microLoans.get(input.get(1));
 		Double repayAmount = Double.parseDouble(input.get(2));
 		if (loan.getStatus().equals("Active")) {
-			Customer borrower = customers.get(customer.getKey());
+			Customer borrower = customers.get(customer.getName());
 			Customer lender = customers.get(loan.getLenderID());
 			// Validate appropriate amount
 			if (repayAmount <= loan.getOutstandingAmount()) {
