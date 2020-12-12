@@ -12,14 +12,17 @@ public class MicroLoan {
     private double annualInterestRate;
     private double outstandingAmount;
     private String borrowerID;
+    private String borrowerIBAN;
     private String lenderID;
+    private String lenderIBAN;
     private int loanID;
 
     /* --- Methods --- */
     // Create a new MicroLoan object
     public MicroLoan(String borrowerID, String description,
-                     double totalAmount, double annualInterestRate, int loanID) {
+                     double totalAmount, double annualInterestRate, int loanID, String borrowerIBAN) {
         this.borrowerID = borrowerID;
+        this.borrowerIBAN = borrowerIBAN;
         this.description = description;
         this.totalAmount = totalAmount;
         this.annualInterestRate = annualInterestRate;
@@ -47,8 +50,12 @@ public class MicroLoan {
     public void setAnnualInterestRate(double interestRate) { this.annualInterestRate = interestRate; }
     public String getBorrowerID() { return borrowerID; }
     public void  setBorrowerID(String borrowerID) { this.borrowerID = borrowerID; }
+    public String getBorrowerIBAN() { return borrowerIBAN; }
+    public void setBorrowerIBAN(String borrowerIBAN) { this.borrowerIBAN = borrowerIBAN; }
     public String getLenderID() { return lenderID; }
     public void setLenderID(String lenderID) { this.lenderID = lenderID; }
+    public String getLenderIBAN() { return lenderIBAN; }
+    public void setLenderIBAN(String lenderIBAN) { this.lenderIBAN = lenderIBAN; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
     public int getLoanID() { return loanID;}
