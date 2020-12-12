@@ -505,5 +505,40 @@ public class NewBank {
 				"the interest rate calculation will begin now.";
 	}
 
+	private String repayLoan(CustomerID customer, String request) {
+		// Convert request from String to List
+		// index: 0 = requestCommand, 1 = selected microloan ID, 2 = repayment amount
+		List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
+		MicroLoan loan = microLoans.get(input.get(1));
+		Double repayAmount = Double.parseDouble(input.get(2));
+		if (loan.getStatus().equals("Active")) {
+			Customer borrower = customers.get(customer.getKey());
+			Customer lender = customers.get(loan.getLenderID());
+			// Validate appropriate amount
+			if (repayAmount <= loan.getOutstandingAmount()) {
+				// Complete money transfer
+				ArrayList<Account> lenderAccounts = lender.getAllAccounts();
+				ArrayList<Account> borrowerAccounts = borrower.getAllAccounts();
+				lender.getAccount(lenderAccounts.get(0).getAccountName()).deposit(repayAmount);
+				borrower.getAccount(borrowerAccounts.get(0).getAccountName()).withdraw(repayAmount);
+				// Update loan status and attributes
+				loan.updatePaidAmount(repayAmount);
+				loan.updateOutstandingAmount();
+				if (loan.getOutstandingAmount() == 0.0) {
+					loan.setStatus("Closed");
+					return "You have fully repaid your loan. This loan will be closed.";
+				} else {
+					String amount = Double.toString(loan.getOutstandingAmount());
+					return "Repayment has been successful. The loan's current outstanding amount is: " + amount;
+				}
+			} else {
+				return "You tried to repay more than the total amount outstanding. Process has not been completed. " +
+						"Please try again.";
+			}
+		} else {
+			return "The status of this loan is not active. Please select an active loan.";
+		}
+	}
+
 }
 
