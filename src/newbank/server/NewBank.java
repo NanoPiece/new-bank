@@ -361,7 +361,7 @@ public class NewBank {
 		customers.get(customer.getKey()).addMicroLoanID(newLoan.getLoanID());
 		microLoans.put(Integer.toString(newLoan.getLoanID()),newLoan);
 		microLoansIndex += 1;
-		return "Your loan application has been submitted!";
+		return "Your loan application has been submitted to the market.";
 	}
 
 	private String showAllLoanApplications(CustomerID customer) {
@@ -444,7 +444,7 @@ public class NewBank {
 			microLoans.remove(input.get(1));
 			return "Your loan application has been canceled";
 		} else {
-			return "This loan cannot be canceled anymore.";
+			return "This loan canot be canceled anymore.";
 		}
 	}
 
@@ -479,7 +479,7 @@ public class NewBank {
 						"Please try again.";
 			}
 		} else {
-			return "The status of this loan is not active. Please select an active loan.";
+			return "The status of this loan is not active. Please select a loan that is active.";
 		}
 	}
 }
