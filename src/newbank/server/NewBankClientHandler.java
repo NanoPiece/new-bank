@@ -251,26 +251,151 @@ public class NewBankClientHandler extends Thread{
 						out.println("Thank you and have a nice day!");
 						System.exit(0);
 					} else if (request.equals("10")) {
+						clearScreen();
 						out.println("Welcome to Micro-Loan!");
-						while (!request.equals("5")) {
+						while (!request.equals("6")) {
 							out.println(showMicroLoanOptions());
 							request = in.readLine();
 							if (request.equals("1")){
 								// 1. View Micro-Loan Dashboard
+								clearScreen();
 								request = "MICROLOAN-1";
 								String response = bank.processRequest(customer, request);
 								out.println(response);
-
 							} else if (request.equals("2")) {
 								// 2. Apply For New Loan
+								clearScreen();
+								request = "MICROLOAN-2";
+								out.println("How much would you like to apply for? (0.0 - 10000.0)");
+								String loanAmount = in.readLine();
+								while (!checkValidInputRange(loanAmount, 0.0, 10000.0)) {
+									out.println("Please enter a valid figure.");
+									loanAmount = in.readLine();
+								}
+								out.println("What is the purpose for your loan?");
+								String description = in.readLine();
+								out.println("At what interest rate would you like to repay this loan at? " +
+										"(0.0 to 10.0 per year)");
+								String interestRate = in.readLine();
+								while (!checkValidInputRange(interestRate, 0.0, 10.0)){
+									out.println("Please enter a valid figure.");
+									interestRate = in.readLine();
+								}
+								request += "," + description + "," + loanAmount + "," + interestRate;
+								String response = bank.processRequest(customer, request);
+								out.println(response);
+								out.println("");
+								clearScreen();
 							} else if (request.equals("3")) {
 								// 3. Accept Loan
+								clearScreen();
+								request = "MICROLOAN-3A";
+								out.println("Please select which loan you would like to provide money for by entering" +
+										" the ID");
+								// Display selectable loans
+								Boolean validInput = false;
+								String response = bank.processRequest(customer, request);
+								out.println(response);
+								String selectedMicroLoan = "";
+								// Confirm input
+								while (!validInput){
+									selectedMicroLoan = in.readLine();
+									String lines[] = response.split("\\r?\\n");
+									for (int i=2; i<lines.length; i++) {
+										String line[] = lines[i].split("\\s+");
+										if (line[0].equals(selectedMicroLoan)) {
+											validInput = true;
+										}
+									}
+									if (!validInput) {
+										out.println("Please enter a valid ID.");
+									}
+								}
+								// Send request and print response
+								request = "MICROLOAN-3B" + "," + selectedMicroLoan;
+								response = bank.processRequest(customer, request);
+								out.println(response);
 							} else if (request.equals("4")) {
 								// 4. Cancel Loan Application
+								clearScreen();
+								request = "MICROLOAN-1";
+								String response = bank.processRequest(customer, request);
+								out.println("Please select the loan that you want to cancel by typing in the ID.");
+								out.println(response);
+								boolean validInput = false;
+								String selectedMicroLoan = "";
+								// Confirm input
+								while (!validInput){
+									selectedMicroLoan = in.readLine();
+									String lines[] = response.split("\\r?\\n");
+									for (int i=2; i<lines.length; i++) {
+										String line[] = lines[i].split("\\s+");
+										if (line[0].equals(selectedMicroLoan)) {
+											validInput = true;
+										}
+									}
+									if (!validInput) {
+										out.println("Please enter a valid ID.");
+									}
+								}
+								// Send request
+								request = "MICROLOAN-4" + "," + selectedMicroLoan;
+								response = bank.processRequest(customer, request);
+								out.println(response);
 							} else if (request.equals("5")) {
-								// 5. Return to Main Menu
+								// 5. Repay loan
+								clearScreen();
+								request = "MICROLOAN-1";
+								String response = bank.processRequest(customer, request);
+								out.println("Please select the loan that you want to repay by typing in the ID.");
+								out.println(response);
+								boolean validInput = false;
+								String selectedMicroLoan = "";
+								// Confirm ID input
+								while (!validInput){
+									selectedMicroLoan = in.readLine();
+									String lines[] = response.split("\\r?\\n");
+									String reply = "Please enter a valid ID.";
+									for (int i=2; i<lines.length; i++) {
+										String line[] = lines[i].split("\\s+");
+										if (line[0].equals(selectedMicroLoan)) {
+											if (line[line.length-1].equals("Active")) {
+												validInput = true;
+											} else {
+												reply = "Selected loan is not active and cannot be repaid. Please try" +
+														" another one.";
+											}
+										}
+									}
+									if (!validInput) {
+										out.println(reply);
+									}
+								}
+								// Confirm amount
+								out.println("Please enter the amount you would like to repay (Up to total amount " +
+										"outstanding):");
+								String repayAmount = "";
+								Boolean validated = false;
+								while (!validated){
+									try {
+										repayAmount = in.readLine();
+										Double n = Double.parseDouble(repayAmount);
+										if (n > 0) {
+											validated = true;
+										}
+									} catch (Exception e) {
+										out.println("Please enter a valid number");
+									}
+								}
+								// Send request
+								request = "MICROLOAN-5" + "," + selectedMicroLoan + "," + repayAmount;
+								response = bank.processRequest(customer, request);
+								out.println(response);
+							} else if (request.equals("6")) {
+								// 6. Return to Main Menu
 								returnToMenu();
 							} else {
+								// Unrecognisable input
 								clearScreen();
 								out.print("Invalid Entry\n");
 							}
@@ -322,7 +447,22 @@ public class NewBankClientHandler extends Thread{
 				"2. Apply For New Loan\n" +
 				"3. Provide Money to Loan\n" +
 				"4. Cancel Loan Application\n" +
-				"5. Return to Main Menu";
+				"5. Repay loan\n" +
+				"6. Return to Main Menu";
+	}
+
+	private Boolean checkValidInputRange(String amount, Double min, Double max) {
+		Double test;
+		try {
+			test = Double.parseDouble(amount);
+		} catch (Exception e) {
+			return false;
+		}
+		if (test >= min && test <= max) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	public void clearScreen() {

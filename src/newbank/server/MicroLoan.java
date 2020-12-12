@@ -1,5 +1,8 @@
 package newbank.server;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 public class MicroLoan {
     /* --- Attributes --- */
     private String description;
@@ -7,6 +10,7 @@ public class MicroLoan {
     private double totalAmount;
     private double paidAmount;
     private double annualInterestRate;
+    private double outstandingAmount;
     private String borrowerID;
     private String lenderID;
     private int loanID;
@@ -20,8 +24,9 @@ public class MicroLoan {
         this.totalAmount = totalAmount;
         this.annualInterestRate = annualInterestRate;
         this.paidAmount = 0.0;
+        this.outstandingAmount = this.totalAmount - this.paidAmount;
         this.lenderID = null;
-        this.status = "Applied";
+        this.status = "Draft";
         this.loanID = loanID;
     }
 
@@ -34,14 +39,32 @@ public class MicroLoan {
     public double getTotalAmount() { return totalAmount; }
     public void setTotalAmount(double requestedAmount) { this.totalAmount = requestedAmount; }
     public double getPaidAmount() { return paidAmount; }
-    public void setPaidAmount(double paidAmount) { this.paidAmount = paidAmount; }
+    public void updatePaidAmount(double paidAmount) {
+        this.paidAmount += paidAmount;
+        round(this.paidAmount, 1);
+    }
     public double getAnnualInterestRate() { return annualInterestRate; }
     public void setAnnualInterestRate(double interestRate) { this.annualInterestRate = interestRate; }
     public String getBorrowerID() { return borrowerID; }
     public void  setBorrowerID(String borrowerID) { this.borrowerID = borrowerID; }
     public String getLenderID() { return lenderID; }
-    public void setLenderID() { this.lenderID = lenderID; }
-    public String getStatus() { return status; };
+    public void setLenderID(String lenderID) { this.lenderID = lenderID; }
+    public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
-    public int getLoanID() { return loanID;};
+    public int getLoanID() { return loanID;}
+    public double getOutstandingAmount() { return outstandingAmount; }
+    public void updateOutstandingAmount() {
+        this.outstandingAmount = this.totalAmount - this.paidAmount;
+        round(this.outstandingAmount, 1);
+    }
+
+    // Round doubles method
+    private static double round(double value, int places) {
+        if (places < 0) throw new IllegalArgumentException();
+
+        BigDecimal bd = new BigDecimal(Double.toString(value));
+        bd = bd.setScale(places, RoundingMode.HALF_UP);
+        return bd.doubleValue();
+    }
 }
+

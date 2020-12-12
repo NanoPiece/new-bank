@@ -105,6 +105,9 @@ public class Customer {
 	public void addMicroLoanID(int loanID) {
 		associatedMicroLoanID.add(loanID);
 	}
+	public void removeMicroLoanID(int loanID) {
+		associatedMicroLoanID.remove(new Integer(loanID));
+	}
 	public ArrayList<Integer> getAssociatedMicroLoanID() {
 		return associatedMicroLoanID;
 	}
