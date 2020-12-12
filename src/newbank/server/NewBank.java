@@ -28,19 +28,19 @@ public class NewBank {
 	}
 
 	private void addTestData() {
-		Customer bhagy = new Customer();
+		Customer bhagy = new Customer("Bhagy", "bhagy123", "123456");
 		bhagy.addAccount(new Account("Current", 1000.0));
 		bhagy.addAccount(new Account("Savings", 2000.0));
 		bhagy.addAccount(new Account("Checking", 3000000.0));
-		customers.put("Bhagy", bhagy);
+		customers.put(bhagy.getName(), bhagy);
 
-		Customer christina = new Customer();
+		Customer christina = new Customer("Christina", "christina123", "123456");
 		christina.addAccount(new Account("Savings", 1500.0));
-		customers.put("Christina", christina);
+		customers.put(christina.getName(), christina);
 
-		Customer john = new Customer();
+		Customer john = new Customer("John", "john123", "123456");
 		john.addAccount(new Account("Checking", 250.0));
-		customers.put("John", john);
+		customers.put(john.getName(), john);
 
 		MicroLoan bhagy1 = new MicroLoan("Bhagy","Buy a new car",
 				5000.0, 3.0, microLoansIndex);
@@ -60,8 +60,17 @@ public class NewBank {
 	}
 
 	public synchronized CustomerID checkLogInDetails(String userName, String password) {
-		if(customers.containsKey(userName)) {
-			return new CustomerID(userName);
+		for (Map.Entry<String, Customer> customer: customers.entrySet()){
+			String username = customer.getValue().getCustomerID().getUserName();
+			String pass = customer.getValue().getCustomerID().getPassword();
+			if(username.equals(userName)){
+				if(pass.equals(password)){
+					CustomerID customerID = customer.getValue().getCustomerID();
+					return customerID;
+				}
+			} else {
+				continue;
+			}
 		}
 		return null;
 	}
