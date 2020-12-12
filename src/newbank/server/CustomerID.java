@@ -6,9 +6,10 @@ public class CustomerID {
 	private String key;
 	private String userName;
 	private String password;
+	private String IBAN;
 
 	public CustomerID(String key, String userName, String password) {
-		this.key = key; this.userName = userName; this.password = password;
+		this.key = key; this.userName = userName; this.password = password; this.IBAN = generateIBAN();
 	}
 
 
@@ -32,4 +33,6 @@ public class CustomerID {
 	public String getPassword() {
 		return password;
 	}
+
+	public String getIBAN(){ return IBAN;}
 }
