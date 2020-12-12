@@ -361,7 +361,7 @@ public class NewBank {
 		customers.get(customer.getKey()).addMicroLoanID(newLoan.getLoanID());
 		microLoans.put(Integer.toString(newLoan.getLoanID()),newLoan);
 		microLoansIndex += 1;
-		return "Your loan application has been submitted.";
+		return "Your loan application has been submitted!";
 	}
 
 	private String showAllLoanApplications(CustomerID customer) {
@@ -403,7 +403,7 @@ public class NewBank {
 				output += emptySpaceNeedForMicroLoanDashboard("Interest (%/Y)",
 						Double.toString(loan.getAnnualInterestRate()), 3);
 				output += loan.getStatus();
-				output += "\n";
+				output += "\n\n";
 			}
 		}
 
@@ -428,7 +428,7 @@ public class NewBank {
 		lender.getAccount(lenderAccounts.get(0).getAccountName()).withdraw(loan.getTotalAmount());
 		borrower.getAccount(borrowerAccounts.get(0).getAccountName()).deposit(loan.getTotalAmount());
 		// Return complete message
-		return "You have accepted the loan application. " +
+		return "You have accepted the selected loan application. " +
 				"The money is now wired to the lender's default account " +
 				"and the interest rate calculation will begin now.";
 	}
@@ -444,7 +444,7 @@ public class NewBank {
 			microLoans.remove(input.get(1));
 			return "Your loan application has been canceled";
 		} else {
-			return "This loan can no longer be canceled.";
+			return "This loan cannot be canceled anymore.";
 		}
 	}
 
