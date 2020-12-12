@@ -479,7 +479,7 @@ public class NewBank {
 						"Please try again.";
 			}
 		} else {
-			return "This loan is not currently active. Please select an active loan.";
+			return "The status of this loan is not active. Please select an active loan.";
 		}
 	}
 }
