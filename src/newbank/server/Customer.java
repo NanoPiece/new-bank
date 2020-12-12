@@ -6,6 +6,7 @@ import java.util.ArrayList;
 public class Customer {
 
 	private ArrayList<Account> accounts;
+	private ArrayList<Integer> associatedMicroLoanID;
 	private CustomerID customerID;
 	private String Name;
 	private String username;
@@ -13,6 +14,7 @@ public class Customer {
 
 	public Customer(String actualName, String userName, String password) {
 		accounts = new ArrayList<>();
+		associatedMicroLoanID = new ArrayList<>();
 		customerID = new CustomerID(actualName, userName, password);
 		Name = customerID.getKey();
 	}
@@ -22,6 +24,11 @@ public class Customer {
 	}
 	public String getName() {
 		return Name;
+	}
+
+
+	public ArrayList<Account> getAccounts() {
+		return accounts;
 	}
 
 
@@ -54,12 +61,8 @@ public class Customer {
 		}
 		s += "\n";
 
-		int accountIndex = 1;
-
 		// Accounts detail
 		for(Account a : accounts) {
-			s += accountIndex + ". ";
-			accountIndex++;
 			s += a.getAccountName();
 			for(int i=0;i<longestAccountNameCount-a.getAccountName().length();i++){
 				s += " ";
@@ -97,5 +100,16 @@ public class Customer {
 
 	// get number of accounts
 	public int numAccounts() {return accounts.size();}
+
+	// Associate microloan with Customer
+	public void addMicroLoanID(int loanID) {
+		associatedMicroLoanID.add(loanID);
+	}
+	public void removeMicroLoanID(int loanID) {
+		associatedMicroLoanID.remove(new Integer(loanID));
+	}
+	public ArrayList<Integer> getAssociatedMicroLoanID() {
+		return associatedMicroLoanID;
+	}
 
 }

@@ -1,3 +1,4 @@
+
 package newbank.server;
 
 import java.io.BufferedReader;
@@ -18,264 +19,450 @@ public class NewBankClientHandler extends Thread{
 		out = new PrintWriter(s.getOutputStream(), true);
 	}
 
+		public void run() {
+			// keep getting requests from the client and processing them
+			try {
+				clearScreen();
+				out.println("Welcome to New Bank\n\nPlease choose from the options below:\n");      // offer log in or create account
+				out.println("1. Log In");
+				out.println("2. Create User");
+				String customerAction = in.readLine();
 
-	public void run() {
-		// keep getting requests from the client and processing them
-		try {
-			clearScreen();
-			out.println("Welcome to New Bank\n\nPlease choose from the options below:\n");      // offer log in or create account
-			out.println("1. Log In");
-			out.println("2. Create User");
-			String customerAction = in.readLine();
-
-			while (!(customerAction.equals("1")) && (!(customerAction.equals("2")))) {
-				out.println("Please try again");          // ensure customer's entry is valid
-				customerAction = in.readLine();
-			}
-			if (customerAction.equals("2")) {
-				out.println("What is your name?");
-				String actualName = in.readLine();
-				out.println("Please create a username:");
-				String userName = in.readLine();
-				out.println("Please create a password:");
-				String password = in.readLine();
-
-				String request = "CREATEACCOUNT" + "," + actualName + "," + userName + "," + password;
-				String response = bank.processAccountCreationRequest(request);
-				out.println(response);          // direct to account creation where they will be able to choose a username and continue
-				while(response == "Password is not strong enough. Please create a new password:"){
-					password = in.readLine();
-					request = "CREATEACCOUNT" + "," + actualName + "," + userName + "," + password;
-					response = bank.processAccountCreationRequest(request);
-					out.println(response);
+				while (!(customerAction.equals("1")) && (!(customerAction.equals("2")))) {
+					out.println("Please try again");          // ensure customer's entry is valid
+					customerAction = in.readLine();
 				}
+				if (customerAction.equals("2")) {
+					out.println("What is your name?");
+					String actualName = in.readLine();
+					out.println("Please create a username:");
+					String userName = in.readLine();
+					out.println("Please create a password:");
+					String password = in.readLine();
 
-				while (response == "The username already exists.\nPlease enter a unique username or type 'esc' to return to the menu screen.") {
-					userName = in.readLine();
-					if (userName.equals("esc")){
+					String request = "CREATEACCOUNT" + "," + actualName + "," + userName + "," + password;
+					String response = bank.processAccountCreationRequest(request);
+					out.println(response);          // direct to account creation where they will be able to choose a username and continue
+					while(response == "Password is not strong enough. Please create a new password:"){
+						password = in.readLine();
+						request = "CREATEACCOUNT" + "," + actualName + "," + userName + "," + password;
+						response = bank.processAccountCreationRequest(request);
+						out.println(response);
+					}
+
+					while (response == "The username already exists.\nPlease enter a unique username or type 'esc' to return to the menu screen.") {
+						userName = in.readLine();
+						if (userName.equals("esc")){
+							out.println("Loading menu screen...\n");
+							sleep();
+							break;
+						}
+					}
+					if (!userName.equals("esc")) {
+						clearScreen();
+						out.println("User: '" + userName + "' Created\n");
 						out.println("Loading menu screen...\n");
 						sleep();
-						break;
+						run();
+					} else if (userName.equals("esc")){
+						out.println("Loading menu screen...\n");
+						sleep();
+						run();
 					}
+
 				}
-				if (!userName.equals("esc")) {
+				if (customerAction.equals("1")) {
 					clearScreen();
-					out.println("User: '" + userName + "' Created\n");
-					out.println("Loading menu screen...\n");
-					sleep();
-					run();
-				} else if (userName.equals("esc")){
-					out.println("Loading menu screen...\n");
-					sleep();
-					run();
+					out.println("Enter Username");              // ask for user name
 				}
-
-			}
-			if (customerAction.equals("1")) {
-				clearScreen();
-				out.println("Enter Username");              // ask for user name
-			}
-			String userName = in.readLine();
-			// ask for password
-			out.println("Enter Password");
-			String password = in.readLine();
-			out.println("Checking Details...");
-
-			// authenticate user and get customer ID token from bank for use in subsequent requests
-			CustomerID customer = bank.checkLogInDetails(userName, password);
-			while (customer==null){
-				out.println("Log In Failed. Please try again");
-				out.println("Enter Username");
-				userName = in.readLine();
+				String userName = in.readLine();
 				// ask for password
 				out.println("Enter Password");
-				password = in.readLine();
+				String password = in.readLine();
 				out.println("Checking Details...");
-				customer = bank.checkLogInDetails(userName, password);
-			}
-			// if the user is authenticated then get requests from the user and process them
 
-			//Customer current= bank.getIndex(userName);
-			out.println("Log In Successful. What do you want to do?");
-			while(true) {
-				out.println(showMenu());
-				String request = in.readLine();
-				if (request.equals("1")){
-					clearScreen();
-					String dashboard = bank.processRequest(customer, "1");
-					out.println(dashboard);
-				} else if (request.equals("2")){
-					clearScreen();
-					out.println("Enter the Account that you want to change the name for:  ");
-					String accountName = SelectAccount(customer);
+				// authenticate user and get customer ID token from bank for use in subsequent requests
+				CustomerID customer = bank.checkLogInDetails(userName, password);
+				while (customer==null){
+					out.println("Log In Failed. Please try again");
+					out.println("Enter Username");
+					userName = in.readLine();
+					// ask for password
+					out.println("Enter Password");
+					password = in.readLine();
+					out.println("Checking Details...");
+					customer = bank.checkLogInDetails(userName, password);
+				}
+				// if the user is authenticated then get requests from the user and process them
 
-					// Request new account name from user
-					out.println("Please type in the new name for your selected account.");
-					String newAccountName = in.readLine();
-					newAccountName = newAccountName.trim();
+				//Customer current= bank.getIndex(userName);
+				out.println("Log In Successful. What do you want to do?");
+				while(true) {
+					out.println(showMenu());
+					String request = in.readLine();
+					if (request.equals("1")){
+						clearScreen();
+						String dashboard = bank.processRequest(customer, "1");
+						out.println(dashboard);
+						returnToMenu();
+					} else if (request.equals("2")){
+						clearScreen();
+						out.println("Enter the Account that you want to change the name for:  ");
+						String accountName = SelectAccount(customer);
 
-					request += "," + accountName + "," + newAccountName;
+						// Request new account name from user
+						out.println("Please type in the new name for your selected account.");
+						String newAccountName = in.readLine();
+						newAccountName = newAccountName.trim();
 
-					String response = bank.processRequest(customer, request);
-					out.println(response);
-					returnToMenu();
+						request += "," + accountName + "," + newAccountName;
 
-				} else if(request.equals("3")){
-					clearScreen();
-					out.println("Enter the Username of Receiver: ");
-					String receiver = in.readLine();
-
-					out.println("Enter the Amount to transfer:  ");
-					String amount_totransfer = in.readLine();
-
-					out.println("Enter the Account that you want to transfer from:  ");
-					String accountName = SelectAccount(customer);
-
-					out.println("Please type in the 6-digit authentication number shown in your Google Authenticator App");
-					String authNumber = in.readLine();
-
-					request += "," + receiver + "," + amount_totransfer + "," + accountName + "," + authNumber;;
-
-					String response = bank.processRequest(customer, request);
-					out.println(response);
-					returnToMenu();
-
-				} else if (request.equals("4")){
-					clearScreen();
-					out.println("Enter the Account that you want to transfer from:  ");
-					String account_from = SelectAccount(customer);
-
-					out.println("Enter the Account that you want to transfer to:  ");
-					String account_to = SelectAccount(customer);
-
-					out.println("Enter the Amount to transfer:  ");
-					String string_amount = in.readLine();
-
-					out.println("Please type in the 6-digit authentication number shown in your Google Authenticator App");
-					String authNumber = in.readLine();
-
-					request += "," + account_from + "," + account_to + "," + string_amount + "," + authNumber;
-
-					String response = bank.processRequest(customer, request);
-					out.println(response);
-
-				} else if (request.equals("5a")) {
-					clearScreen();
-
-					// check if user has accounts to close
-					if (Integer.parseInt(bank.processRequest(customer, "NUMBEROFUSERACCOUNTS")) == 0) {
-						out.println("User has no accounts!\n");
-					} else if (Integer.parseInt(bank.processRequest(customer, "NUMBEROFUSERACCOUNTS")) == 1) { // do not allow to close if only one account remains
-						out.println("User must have at least one account!");
-					} else {
-						// show accounts
-						out.println(bank.processRequest(customer, "1"));
-
-						// get account to close
-						out.println("Select which account you wish to close:\n");
-						String accountToClose = in.readLine();
-						request += "," + accountToClose;
-
-						String accountToTransferFundsTo;
-
-						// get account to transfer money to
-						do {
-							clearScreen();
-							out.println(bank.processRequest(customer, "1"));
-							out.println("Select which account you wish to transfer the remaining funds to:\n");
-							accountToTransferFundsTo = in.readLine();
-							if (accountToTransferFundsTo.equals(accountToClose)) {
-								out.println("Can't be the same account.\n");
-							}
-						} while (accountToTransferFundsTo.equals(accountToClose));
-						request += "," + accountToTransferFundsTo;
-
-						// send request and get response
 						String response = bank.processRequest(customer, request);
 						out.println(response);
-					}
+						returnToMenu();
 
-					// return menu
-					returnToMenu();
-				} else if (request.equals("5")){
-					clearScreen();
-					out.println("Please select an account type:\n");
-					out.println("1. Current Account");  // take account type
-					out.println("2. Savings Account");
-					String accountType = in.readLine();
-					request += "," + accountType;
-					while (!(accountType.equals("1")) && (!(accountType.equals("2")))) {
-						out.println("Please try again");   // ensure customer's entry is valid
-					}
-					String response = bank.processRequest(customer, request);
-					out.println(response);
+					} else if(request.equals("3")){
+						clearScreen();
+						out.println("Enter the Username of Receiver: ");
+						String receiver = in.readLine();
 
-				} else if (request.equals("6")){
-					out.println("Please type in the 6-digit authentication number shown in your Google Authenticator App");
-					String authNumber = in.readLine();
-					request += "," + authNumber;
-					String response = bank.processRequest(customer, request);
-					out.println(response);
+						out.println("Enter the Amount to transfer:  ");
+						String amount_totransfer = in.readLine();
 
-				} else if (request.equals("7")){
-					// cancel a scheduled transfer
-					// show scheduled transfers
-					out.println("Please type in the 6-digit authentication number shown in your Google Authenticator App");
-					String authNumber = in.readLine();
-					request = "6" + "," + authNumber;
-					String response = bank.processRequest(customer, request);
-					out.println(response);
-					while (response.equals("Not able to show scheduled actions: Authentication fail")){
+						out.println("Enter the Account that you want to transfer from:  ");
+						String accountName = SelectAccount(customer);
+
 						out.println("Please type in the 6-digit authentication number shown in your Google Authenticator App");
-						authNumber = in.readLine();
+						String authNumber = in.readLine();
+
+						request += "," + receiver + "," + amount_totransfer + "," + accountName + "," + authNumber;;
+
+						String response = bank.processRequest(customer, request);
+						out.println(response);
+						returnToMenu();
+
+					} else if (request.equals("4")){
+						clearScreen();
+						out.println("Enter the Account that you want to transfer from:  ");
+						String account_from = SelectAccount(customer);
+
+						out.println("Enter the Account that you want to transfer to:  ");
+						String account_to = SelectAccount(customer);
+
+						out.println("Enter the Amount to transfer:  ");
+						String string_amount = in.readLine();
+
+						out.println("Please type in the 6-digit authentication number shown in your Google Authenticator App");
+						String authNumber = in.readLine();
+
+						request += "," + account_from + "," + account_to + "," + string_amount + "," + authNumber;
+
+						String response = bank.processRequest(customer, request);
+						out.println(response);
+						returnToMenu();
+
+					} else if (request.equals("5a")) {
+						clearScreen();
+
+						// check if user has accounts to close
+						if (Integer.parseInt(bank.processRequest(customer, "NUMBEROFUSERACCOUNTS")) == 0) {
+							out.println("User has no accounts!\n");
+						} else if (Integer.parseInt(bank.processRequest(customer, "NUMBEROFUSERACCOUNTS")) == 1) { // do not allow to close if only one account remains
+							out.println("User must have at least one account!");
+						} else {
+							// show accounts
+							out.println(bank.processRequest(customer, "1"));
+
+							// get account to close
+							out.println("Select which account you wish to close:\n");
+							String accountToClose = in.readLine();
+							request += "," + accountToClose;
+
+							String accountToTransferFundsTo;
+
+							// get account to transfer money to
+							do {
+								clearScreen();
+								out.println(bank.processRequest(customer, "1"));
+								out.println("Select which account you wish to transfer the remaining funds to:\n");
+								accountToTransferFundsTo = in.readLine();
+								if (accountToTransferFundsTo.equals(accountToClose)) {
+									out.println("Can't be the same account.\n");
+								}
+							} while (accountToTransferFundsTo.equals(accountToClose));
+							request += "," + accountToTransferFundsTo;
+
+							// send request and get response
+							String response = bank.processRequest(customer, request);
+							out.println(response);
+						}
+
+						// return menu
+						returnToMenu();
+					} else if (request.equals("5")){
+						clearScreen();
+						out.println("Please select an account type:\n");
+						out.println("1. Current Account");  // take account type
+						out.println("2. Savings Account");
+						String accountType = in.readLine();
+						request += "," + accountType;
+						while (!(accountType.equals("1")) && (!(accountType.equals("2")))) {
+							out.println("Please try again");   // ensure customer's entry is valid
+						}
+						String response = bank.processRequest(customer, request);
+						out.println(response);
+
+					} else if (request.equals("6")){
+						out.println("Please type in the 6-digit authentication number shown in your Google Authenticator App");
+						String authNumber = in.readLine();
+						request += "," + authNumber;
+						String response = bank.processRequest(customer, request);
+						out.println(response);
+
+					} else if (request.equals("7")){
+						// cancel a scheduled transfer
+						// show scheduled transfers
+						out.println("Please type in the 6-digit authentication number shown in your Google Authenticator App");
+						String authNumber = in.readLine();
 						request = "6" + "," + authNumber;
+						String response = bank.processRequest(customer, request);
+						out.println(response);
+						while (response.equals("Not able to show scheduled actions: Authentication fail")){
+							out.println("Please type in the 6-digit authentication number shown in your Google Authenticator App");
+							authNumber = in.readLine();
+							request = "6" + "," + authNumber;
+							response = bank.processRequest(customer, request);
+							out.println(response);
+						}
+						// get id of transfer to be cancelled
+						out.println("Enter number of transaction you wish to cancel (type 0 if there are no scheduled actions):");
+						String cancelTransaction = in.readLine();
+						request = "7" + "," + cancelTransaction + "," + authNumber;
+
 						response = bank.processRequest(customer, request);
 						out.println(response);
+					} else if (request.equals("8")) {
+						clearScreen();
+						out.println("Logging out...");
+						sleep();
+						run();
+					} else if (request.equals("9")){
+						clearScreen();
+						out.println("Thank you and have a nice day!");
+						System.exit(0);
+					} else if (request.equals("10")) {
+						clearScreen();
+						out.println("Welcome to Micro-Loan!");
+						while (!request.equals("6")) {
+							out.println(showMicroLoanOptions());
+							request = in.readLine();
+							if (request.equals("1")){
+								// 1. View Micro-Loan Dashboard
+								clearScreen();
+								request = "MICROLOAN-1";
+								String response = bank.processRequest(customer, request);
+								out.println(response);
+							} else if (request.equals("2")) {
+								// 2. Apply For New Loan
+								clearScreen();
+								request = "MICROLOAN-2";
+								out.println("How much would you like to apply for? (0.0 - 10000.0)");
+								String loanAmount = in.readLine();
+								while (!checkValidInputRange(loanAmount, 0.0, 10000.0)) {
+									out.println("Please enter a valid figure.");
+									loanAmount = in.readLine();
+								}
+								out.println("What is the purpose for your loan?");
+								String description = in.readLine();
+								out.println("At what interest rate would you like to repay this loan at? " +
+										"(0.0 to 10.0 per year)");
+								String interestRate = in.readLine();
+								while (!checkValidInputRange(interestRate, 0.0, 10.0)){
+									out.println("Please enter a valid figure.");
+									interestRate = in.readLine();
+								}
+								request += "," + description + "," + loanAmount + "," + interestRate;
+								String response = bank.processRequest(customer, request);
+								out.println(response);
+								out.println("");
+								clearScreen();
+							} else if (request.equals("3")) {
+								// 3. Accept Loan
+								clearScreen();
+								request = "MICROLOAN-3A";
+								out.println("Please select which loan you would like to provide money for by entering" +
+										" the ID");
+								// Display selectable loans
+								Boolean validInput = false;
+								String response = bank.processRequest(customer, request);
+								out.println(response);
+								String selectedMicroLoan = "";
+								// Confirm input
+								while (!validInput){
+									selectedMicroLoan = in.readLine();
+									String lines[] = response.split("\\r?\\n");
+									for (int i=2; i<lines.length; i++) {
+										String line[] = lines[i].split("\\s+");
+										if (line[0].equals(selectedMicroLoan)) {
+											validInput = true;
+										}
+									}
+									if (!validInput) {
+										out.println("Please enter a valid ID.");
+									}
+								}
+								// Send request and print response
+								request = "MICROLOAN-3B" + "," + selectedMicroLoan;
+								response = bank.processRequest(customer, request);
+								out.println(response);
+							} else if (request.equals("4")) {
+								// 4. Cancel Loan Application
+								clearScreen();
+								request = "MICROLOAN-1";
+								String response = bank.processRequest(customer, request);
+								out.println("Please select the loan that you want to cancel by typing in the ID.");
+								out.println(response);
+								boolean validInput = false;
+								String selectedMicroLoan = "";
+								// Confirm input
+								while (!validInput){
+									selectedMicroLoan = in.readLine();
+									String lines[] = response.split("\\r?\\n");
+									for (int i=2; i<lines.length; i++) {
+										String line[] = lines[i].split("\\s+");
+										if (line[0].equals(selectedMicroLoan)) {
+											validInput = true;
+										}
+									}
+									if (!validInput) {
+										out.println("Please enter a valid ID.");
+									}
+								}
+								// Send request
+								request = "MICROLOAN-4" + "," + selectedMicroLoan;
+								response = bank.processRequest(customer, request);
+								out.println(response);
+							} else if (request.equals("5")) {
+								// 5. Repay loan
+								clearScreen();
+								request = "MICROLOAN-1";
+								String response = bank.processRequest(customer, request);
+								out.println("Please select the loan that you want to repay by typing in the ID.");
+								out.println(response);
+								boolean validInput = false;
+								String selectedMicroLoan = "";
+								// Confirm ID input
+								while (!validInput){
+									selectedMicroLoan = in.readLine();
+									String lines[] = response.split("\\r?\\n");
+									String reply = "Please enter a valid ID.";
+									for (int i=2; i<lines.length; i++) {
+										String line[] = lines[i].split("\\s+");
+										if (line[0].equals(selectedMicroLoan)) {
+											if (line[line.length-1].equals("Active")) {
+												validInput = true;
+											} else {
+												reply = "Selected loan is not active and cannot be repaid. Please try" +
+														" another one.";
+											}
+										}
+									}
+									if (!validInput) {
+										out.println(reply);
+									}
+								}
+								// Confirm amount
+								out.println("Please enter the amount you would like to repay (Up to total amount " +
+										"outstanding):");
+								String repayAmount = "";
+								Boolean validated = false;
+								while (!validated){
+									try {
+										repayAmount = in.readLine();
+										Double n = Double.parseDouble(repayAmount);
+										if (n > 0) {
+											validated = true;
+										}
+									} catch (Exception e) {
+										out.println("Please enter a valid number");
+									}
+								}
+								// Send request
+								request = "MICROLOAN-5" + "," + selectedMicroLoan + "," + repayAmount;
+								response = bank.processRequest(customer, request);
+								out.println(response);
+							} else if (request.equals("6")) {
+								// 6. Return to Main Menu
+								returnToMenu();
+							} else {
+								// Unrecognisable input
+								clearScreen();
+								out.print("Invalid Entry\n");
+							}
+						}
+					} else if(!request.equalsIgnoreCase("10")) {
+						clearScreen();
+						out.println("Invalid Entry\n");
+					} else {
+						System.out.println("Request from " + customer.getKey());
+						String responce = bank.processRequest(customer, request);
+						out.println(responce);
+						returnToMenu();
 					}
-					// get id of transfer to be cancelled
-					out.println("Enter number of transaction you wish to cancel (type 0 if there are no scheduled actions):");
-					String cancelTransaction = in.readLine();
-					request = "7" + "," + cancelTransaction + "," + authNumber;
+				}
 
-					response = bank.processRequest(customer, request);
-					out.println(response);
-				} else if (request.equals("8")) {
-					clearScreen();
-					out.println("Logging out...");
-					sleep();
-					run();
-				} else if (request.equals("9")){
-					clearScreen();
-					out.println("Thank you and have a nice day!");
-					System.exit(0);
-				} else if(!request.equalsIgnoreCase("6")) {
-					clearScreen();
-					out.println("Invalid Entry\n");
-				} else {
-					System.out.println("Request from " + customer.getKey());
-					String responce = bank.processRequest(customer, request);
-					out.println(responce);
-					returnToMenu();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			finally {
+				try {
+					in.close();
+					out.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+					Thread.currentThread().interrupt();
 				}
 			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		finally {
-			try {
-				in.close();
-				out.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-				Thread.currentThread().interrupt();
-			}
-		}
 	}
 
-	private String showMenu()
-	{
-		return "1. Show My Accounts\n2. Change Account Names\n3. Transfer to another user\n4. Transfer to another owned account\n5. Create New Account\n5a. Close an Account\n6. Show scheduled transfers\n7. Cancel a scheduled transfer\n8. Log out\n9. Quit";
+	private String
+	showMenu() {
+		return "Please choose from the options below: \n\n" +
+				"1. Show My Accounts\n" +
+				"2. Change Account Names\n" +
+				"3. Transfer to another user\n" +
+				"4. Transfer to another owned account\n" +
+				"5. Create New Account\n" +
+				"5a. Close an Account\n" +
+				"6. Show scheduled transfers\n" +
+				"7. Cancel a scheduled transfer\n" +
+				"8. Log out\n" +
+				"9. Quit\n" +
+				"10. Micro-Loan";
+	}
+
+	private String showMicroLoanOptions() {
+		return "Please choose from the options below: \n\n" +
+				"1. View My Micro-Loan Dashboard\n" +
+				"2. Apply For New Loan\n" +
+				"3. Provide Money to Loan\n" +
+				"4. Cancel Loan Application\n" +
+				"5. Repay loan\n" +
+				"6. Return to Main Menu";
+	}
+
+	private Boolean checkValidInputRange(String amount, Double min, Double max) {
+		Double test;
+		try {
+			test = Double.parseDouble(amount);
+		} catch (Exception e) {
+			return false;
+		}
+		if (test >= min && test <= max) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	public void clearScreen() {
@@ -290,6 +477,7 @@ public class NewBankClientHandler extends Thread{
 		clearScreen();
 		showMenu();
 	}
+
 	private void sleep() throws InterruptedException {
 		Thread.sleep(3000);
 	}
@@ -313,7 +501,7 @@ public class NewBankClientHandler extends Thread{
 					option = option.trim();
 				}
 				b = false;
-			} catch (NumberFormatException | IOException ex) {
+			}catch (NumberFormatException | IOException ex) {
 				out.println("Please enter an integer only!");
 			}
 		}

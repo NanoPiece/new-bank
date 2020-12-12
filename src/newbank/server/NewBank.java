@@ -1,8 +1,7 @@
 package newbank.server;
 
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
+import java.sql.Array;
 import java.util.Date;
 import java.sql.Timestamp;
 import java.util.*;
@@ -14,8 +13,9 @@ public class NewBank {
 
 	private static final NewBank bank = new NewBank();
 	public HashMap<String,Customer> customers;
-
+	public HashMap<String,MicroLoan> microLoans;
 	// scheduler for applying interest
+
 	public double interestRate = 0.02;
 	public ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
@@ -25,6 +25,8 @@ public class NewBank {
 
 	private NewBank() {
 		customers = new HashMap<>();
+		microLoans = new HashMap<>();
+
 		addTestData();
 
 		// schedule interest payments
@@ -55,6 +57,16 @@ public class NewBank {
 		Customer john = new Customer("John", "john123", "123456");
 		john.addAccount(new Account("Checking", 250.0));
 		customers.put(john.getName(), john);
+
+		MicroLoan bhagy1 = new MicroLoan("Bhagy","Buy a new car",
+				5000.0, 3.0, microLoans.size()+1);
+		customers.get(bhagy.getName()).addMicroLoanID(bhagy1.getLoanID());
+		microLoans.put(Integer.toString(bhagy1.getLoanID()),bhagy1);
+
+		MicroLoan bhagy2 = new MicroLoan("Bhagy","Buy Playstation 5",
+				1200.0, 5.0, microLoans.size()+1);
+		customers.get(bhagy.getName()).addMicroLoanID(bhagy2.getLoanID());
+		microLoans.put(Integer.toString(bhagy2.getLoanID()),bhagy2);
 	}
 
 	public static NewBank getBank() {
@@ -77,8 +89,6 @@ public class NewBank {
 		return null;
 	}
 
-
-
 	// commands from the NewBank customer are processed in this method
 	public synchronized String processRequest(CustomerID customer, String request) throws Exception {
 		if(customers.containsKey(customer.getKey())) {
@@ -92,15 +102,14 @@ public class NewBank {
 				case "5a" : return closeAccount(customer, request);
 				case "6" : return showQueue(request);
 				case "7" : return cancelAction(request);
+				case "MICROLOAN-1" : return showMicroLoanDashboard(customer);
 				case "DISPLAYSELECTABLEACCOUNTS" : return displaySelectableAccounts(customer);
 				case "NUMBEROFUSERACCOUNTS": return String.valueOf(customers.get(customer.getKey()).numAccounts());
-				case "CREATEACCOUNT" : return createLoginAccount(request);
 				default : return "FAIL";
 			}
 		}
 		return "FAIL";
 	}
-
 
 	public synchronized String processAccountCreationRequest(String request) throws Exception {
 		List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
@@ -211,6 +220,43 @@ public class NewBank {
 		thisCustomer.addAccount(new Account(accountType, 00.0));
 		return "Account '" + accountType + "' Created.\n";
 	}
+
+	// close a customers account
+	private String closeAccount(CustomerID customer, String request) {
+		List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
+		//System.out.println(input.get(1));
+		int accountToClose = Integer.parseInt(input.get(1));
+		int accountToTransfer = Integer.parseInt(input.get(2));
+		Customer thisCustomer = customers.get(customer.getKey());
+
+		int accountIndex = 1;
+		Account transferAccount = null;
+
+		// get account to transfer to
+		for (Account account : thisCustomer.getAllAccounts()) {
+			if (accountIndex == accountToTransfer) {
+				transferAccount = account;
+				break;
+			}
+			accountIndex++;
+		}
+
+		if (transferAccount == null) {
+			return "Not a valid transfer account!";
+		}
+
+		accountIndex = 1;
+
+		for (Account account: thisCustomer.getAllAccounts()) {
+			if (accountIndex == accountToClose) {
+				account.transfer(transferAccount, account.getOpeningBalance());
+				thisCustomer.closeAccount(account);
+				return "Account closed.";
+			}
+			accountIndex++;
+		}
+		return "Not a valid choice.";
+	}
   
 	Customer getIndex(String newP)
 	{
@@ -221,7 +267,7 @@ public class NewBank {
 	private void queueAction(CustomerID customer, String request, String action) {
 
 		// time delay in milliseconds (300000 = 5 minutes)
-		int delay = 30000;
+		int delay = 300000;
 
 		// switch to handle different functions
 		if(customers.containsKey(customer.getKey())) {
@@ -380,44 +426,84 @@ public class NewBank {
 		return isValid;
 	}
 
-	// close a customers account
-	private String closeAccount(CustomerID customer, String request) {
-		List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
-		//System.out.println(input.get(1));
-		int accountToClose = Integer.parseInt(input.get(1));
-		int accountToTransfer = Integer.parseInt(input.get(2));
-		Customer thisCustomer = customers.get(customer.getKey());
 
-		int accountIndex = 1;
-		Account transferAccount = null;
-
-		// get account to transfer to
-		for (Account account : thisCustomer.getAllAccounts()) {
-			if (accountIndex == accountToTransfer) {
-				transferAccount = account;
-				break;
+	private String showMicroLoanDashboard(CustomerID customer) {
+		// Header
+		String header = "ID" + "   " + "Borrower" + "     " + "Lender" + "     " + "Description" +
+						"               " + "Total Amount" + "   " + "Paid Amount" + "   " +
+						"Interest (%/Y)" + "   " + "Status" + "\n";
+		String output = "";
+		output += header;
+		// Divider
+		for (int i=0; i<header.length(); i++){
+			output += "-";
+		}
+		output += "-----";
+		output += "\n";
+		// Content
+		ArrayList<Integer> associatedMicroLoanID =
+				(customers.get(customer.getKey())).getAssociatedMicroLoanID();
+		for (Integer loanID : associatedMicroLoanID) {
+			MicroLoan loan = microLoans.get(Integer.toString(loanID));
+			output += Integer.toString(loan.getLoanID());
+			output += emptySpaceNeedForMicroLoanDashboard("ID", Integer.toString(loan.getLoanID()),
+					3);
+			output += loan.getBorrowerID();
+			output += emptySpaceNeedForMicroLoanDashboard("Borrower", loan.getBorrowerID(),
+					5);
+			output += loan.getLenderID();
+			output += emptySpaceNeedForMicroLoanDashboard("Lender", loan.getLenderID(),
+					5);
+			output += loan.getDescription();
+			output += emptySpaceNeedForMicroLoanDashboard("Description", loan.getDescription(),
+					15);
+			output += loan.getTotalAmount();
+			output += emptySpaceNeedForMicroLoanDashboard("Total Amount",
+					Double.toString(loan.getTotalAmount()), 3);
+			output += loan.getPaidAmount();
+			output += emptySpaceNeedForMicroLoanDashboard("Paid Amount",
+					Double.toString(loan.getPaidAmount()), 3);
+			output += loan.getAnnualInterestRate();
+			output += emptySpaceNeedForMicroLoanDashboard("Interest (%/Y)",
+					Double.toString(loan.getAnnualInterestRate()), 3);
+			output += loan.getStatus();
+			output += "\n";
+		}
+		return output;
+	}
+	private String emptySpaceNeedForMicroLoanDashboard(String header, String value,
+													   int defaultEmptySpaceAfterHeader) {
+		String output = "";
+		int spaceRequired = 0;
+		if (value == null) {
+			value = "null";
+		}
+		if (header.length() == value.length()) {
+			spaceRequired = defaultEmptySpaceAfterHeader;
+		} else {
+			spaceRequired = header.length()-value.length()+defaultEmptySpaceAfterHeader;
+			if (spaceRequired<0) {
+				spaceRequired = 0;
 			}
-			accountIndex++;
 		}
-
-		if (transferAccount == null) {
-			return "Not a valid transfer account!";
+		for (int i=0; i<spaceRequired; i++){
+			output += " ";
 		}
-
-		accountIndex = 1;
-
-		for (Account account: thisCustomer.getAllAccounts()) {
-			if (accountIndex == accountToClose) {
-				account.transfer(transferAccount, account.getOpeningBalance());
-				thisCustomer.closeAccount(account);
-				return "Account closed.";
-			}
-			accountIndex++;
-		}
-		return "Not a valid choice.";
+		return output;
 	}
 
+	private String submitLoanApplication() {
+		return "Your loan application has been submitted.";
+	}
 
+	private String submitLoanOffer() {
+		return "Your interest rate offer has been sent to the applicant";
+	}
+
+	private String acceptLoanOffer() {
+		return "You have accepted the loan offer. The money is now wired to your account and " +
+				"the interest rate calculation will begin now.";
+	}
 
 }
 
