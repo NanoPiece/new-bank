@@ -7,15 +7,30 @@ public class Customer {
 
 	private ArrayList<Account> accounts;
 	private ArrayList<Integer> associatedMicroLoanID;
+	private CustomerID customerID;
+	private String Name;
+	private String username;
+	private String pass;
 
-	public Customer() {
+	public Customer(String actualName, String userName, String password) {
 		accounts = new ArrayList<>();
 		associatedMicroLoanID = new ArrayList<>();
+		customerID = new CustomerID(actualName, userName, password);
+		Name = customerID.getKey();
 	}
+
+	public CustomerID getCustomerID() {
+		return customerID;
+	}
+	public String getName() {
+		return Name;
+	}
+
 
 	public ArrayList<Account> getAccounts() {
 		return accounts;
 	}
+
 
 	// Return the list of accounts of a customer as a string
 	public String accountsToString() {
