@@ -105,7 +105,7 @@ public class NewBankClientHandler extends Thread{
 						String dashboard = bank.processRequest(customer, "1");
 						out.println(dashboard);
 						returnToMenu();
-					} else if(request.equals("3")){
+					} else if(request.equals("2")){
 						clearScreen();
 						out.println("Enter the Name of Receiver: ");
 						String receiver = in.readLine();
@@ -140,7 +140,7 @@ public class NewBankClientHandler extends Thread{
 						out.println(response);
 						returnToMenu();
 
-					} else if (request.equals("4")){
+					} else if (request.equals("3")){
 						clearScreen();
 						out.println("Enter the Account that you want to transfer from:  ");
 						String account_from = SelectAccount(customer);
@@ -172,7 +172,7 @@ public class NewBankClientHandler extends Thread{
 						out.println(response);
 						returnToMenu();
 
-					} else if (request.equals("5a")) {
+					} else if (request.equals("5")) {
 						clearScreen();
 
 						// check if user has accounts to close
@@ -210,7 +210,7 @@ public class NewBankClientHandler extends Thread{
 
 						// return menu
 						returnToMenu();
-					} else if (request.equals("5")){
+					} else if (request.equals("4")){
 						clearScreen();
 						out.println("Please select an account type:\n");
 						out.println("1. Current Account");  // take account type
@@ -224,6 +224,12 @@ public class NewBankClientHandler extends Thread{
 						while(!valid){
 							try{
 								int check = Integer.parseInt(amountToAdd);
+								while (check==0.0){
+									out.println("You cannot create a new account without adding any funds in it.\n");
+									out.println("Please select how much do you want to put in to this new account:\n");
+									amountToAdd = in.readLine();
+									check = Integer.parseInt(amountToAdd);
+								}
 								valid = true;
 							}catch (NumberFormatException ex) {
 								out.println("Invalid input, please try again.\n");
