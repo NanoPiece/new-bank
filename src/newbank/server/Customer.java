@@ -2,6 +2,7 @@ package newbank.server;
 
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class Customer {
 
@@ -106,9 +107,11 @@ public class Customer {
 	// Associate microloan with Customer
 	public void addMicroLoanID(int loanID) {
 		associatedMicroLoanID.add(loanID);
+		Collections.sort(associatedMicroLoanID);
 	}
 	public void removeMicroLoanID(int loanID) {
 		associatedMicroLoanID.remove(new Integer(loanID));
+		Collections.sort(associatedMicroLoanID);
 	}
 	public ArrayList<Integer> getAssociatedMicroLoanID() {
 		return associatedMicroLoanID;

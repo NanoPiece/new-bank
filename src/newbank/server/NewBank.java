@@ -560,20 +560,24 @@ public class NewBank {
 		// Convert request from String to List
 		// index: 0 = requestCommand, 1 = selected microloan key
 		List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
-		// Edit microloan details
 		MicroLoan loan = microLoans.get(input.get(1));
+		Customer lender = customers.get(customer.getIBAN());
+		Customer borrower = customers.get(loan.getBorrowerIBAN());
+		ArrayList<Account> lenderAccounts = lender.getAllAccounts();
+		ArrayList<Account> borrowerAccounts = borrower.getAllAccounts();
+		// Check if transfer can happen: yes = follow on; no = return failed message;
+		if (lender.getAccount(lenderAccounts.get(0).getAccountName()).withdraw(loan.getTotalAmount()) == false) {
+			return "You cannot accept the loan application because there is not enough money in your default bank " +
+					"account";
+		}
+		// Complete the rest of the transaction
+		borrower.getAccount(borrowerAccounts.get(0).getAccountName()).deposit(loan.getTotalAmount());
+		// Edit microloan details
 		loan.setLenderIBAN(customer.getIBAN());
 		loan.setLenderID(customer.getName());
 		loan.setStatus("Active");
 		// Edit customer detail
-		Customer lender = customers.get(customer.getIBAN());
 		lender.addMicroLoanID(loan.getLoanID());
-		// Complete money transfer
-		Customer borrower = customers.get(loan.getBorrowerIBAN());
-		ArrayList<Account> lenderAccounts = lender.getAllAccounts();
-		ArrayList<Account> borrowerAccounts = borrower.getAllAccounts();
-		lender.getAccount(lenderAccounts.get(0).getAccountName()).withdraw(loan.getTotalAmount());
-		borrower.getAccount(borrowerAccounts.get(0).getAccountName()).deposit(loan.getTotalAmount());
 		// Return complete message
 		return "You have accepted the loan application. " +
 				"The money is now wired to the lender's default account " +
@@ -601,7 +605,12 @@ public class NewBank {
 		List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
 		MicroLoan loan = microLoans.get(input.get(1));
 		Double repayAmount = Double.parseDouble(input.get(2));
-		if (loan.getStatus().equals("Active")) {
+
+		if (!loan.getStatus().equals("Active")) {
+			return "This loan is not currently active. Please select an active loan.";
+		} else if (loan.getLenderIBAN().equals(customer.getIBAN())) {
+			return "You cannot repay a loan that you have provided money for.";
+		} else {
 			Customer borrower = customers.get(customer.getIBAN());
 			Customer lender = customers.get(loan.getLenderIBAN());
 			// Validate appropriate amount
@@ -625,8 +634,6 @@ public class NewBank {
 				return "You tried to repay more than the total amount outstanding. Process has not been completed. " +
 						"Please try again.";
 			}
-		} else {
-			return "This loan is not currently active. Please select an active loan.";
 		}
 	}
 

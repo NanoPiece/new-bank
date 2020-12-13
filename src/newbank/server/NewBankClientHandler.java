@@ -346,12 +346,7 @@ public class NewBankClientHandler extends Thread{
 									for (int i=2; i<lines.length; i++) {
 										String line[] = lines[i].split("\\s+");
 										if (line[0].equals(selectedMicroLoan)) {
-											if (line[line.length-1].equals("Active")) {
-												validInput = true;
-											} else {
-												reply = "Selected loan is not active and cannot be repaid. Please try" +
-														" another one.";
-											}
+											validInput = true;
 										}
 									}
 									if (!validInput) {
