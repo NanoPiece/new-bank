@@ -97,10 +97,10 @@ public class NewBank {
 			List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
 			switch(input.get(0)) {
 				case "1" : return showMyAccounts(customer);
-				case "3" : return transferToExternalUser(customer, request);
-				case "4" : return transferToOtherAccount(customer, request);
-				case "5" : return createNewAccount(customer, request);
-				case "5a" : return closeAccount(customer, request);
+				case "2" : return transferToExternalUser(customer, request);
+				case "3" : return transferToOtherAccount(customer, request);
+				case "4" : return createNewAccount(customer, request);
+				case "5" : return closeAccount(customer, request);
 				case "6" : return showQueue(request);
 				case "7" : return cancelAction(request);
 				case "MICROLOAN-1" : return showMicroLoanDashboard(customer);
@@ -180,7 +180,10 @@ public class NewBank {
 		if(Receiver==null)
 		{
 			return "No user exists!";
+		} else if(Receiver==bank.getIndex(customer.getIBAN())){
+			return "You cannot transfer money to yourself. If you want to transfer money within your accounts, please return to the main menu and select '4. Transfer to another owned account.'";
 		}
+
 
 		int authnumber = Integer.parseInt(input.get(5));
 		boolean correct = run2FA(authnumber);
@@ -195,11 +198,15 @@ public class NewBank {
 		List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
 
 		int authnumber = Integer.parseInt(input.get(4));
+		String transferfrom = input.get(1);
+		String transferto = input.get(2);
 		boolean correct = run2FA(authnumber);
 		if (correct==true){
 			if(customers.get(customer.getIBAN()).getAllAccounts().size()<2)
 			{
 				return "You don't have 2 accounts!";
+			} else if(transferfrom.equals(transferto)){
+				return "You cannot transfer to the same account.";
 			}
 			Account account_from = customers.get(customer.getIBAN()).getAccount(input.get(1));
 			Account account_to = customers.get(customer.getIBAN()).getAccount(input.get(2));
@@ -215,6 +222,7 @@ public class NewBank {
 		List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
 		System.out.println(input.get(1));
 		String accountType = input.get(1);
+		double amount = Double.valueOf(input.get(2));
 		Customer thisCustomer = customers.get(customer.getIBAN());
 		if (accountType.equals("1")) {
 			accountType = "Current Account";
@@ -222,7 +230,7 @@ public class NewBank {
 		if (accountType.equals("2")) {
 			accountType = "Savings Account";
 		}
-		thisCustomer.addAccount(new Account(accountType, 00.0));
+		thisCustomer.addAccount(new Account(accountType, amount));
 		return "Account '" + accountType + "' Created.\n";
 	}
 

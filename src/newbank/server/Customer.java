@@ -65,14 +65,16 @@ public class Customer {
 		s += "\n";
 
 		// Accounts detail
+		int counter = 1;
 		for(Account a : accounts) {
-			s += a.getAccountName();
+			s += counter + "." + a.getAccountName();
 			for(int i=0;i<longestAccountNameCount-a.getAccountName().length();i++){
 				s += " ";
 			}
 			s += "        ";
 			s += a.getOpeningBalance();
 			s += "\n";
+			counter+=1;
 		}
 
 		// return output

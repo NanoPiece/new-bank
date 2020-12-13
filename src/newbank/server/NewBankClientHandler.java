@@ -116,6 +116,18 @@ public class NewBankClientHandler extends Thread{
 						out.println("Enter the Amount to transfer:  ");
 						String amount_totransfer = in.readLine();
 
+						boolean valid = false;
+						while(!valid){
+							try{
+								int check = Integer.parseInt(amount_totransfer);
+								valid = true;
+							}catch (NumberFormatException ex) {
+								out.println("Invalid input, please try again.\n");
+								out.println("Enter the Amount to transfer:  ");
+								amount_totransfer = in.readLine();
+							}
+						}
+
 						out.println("Enter the Account that you want to transfer from:  ");
 						String accountName = SelectAccount(customer);
 
@@ -137,12 +149,24 @@ public class NewBankClientHandler extends Thread{
 						String account_to = SelectAccount(customer);
 
 						out.println("Enter the Amount to transfer:  ");
-						String string_amount = in.readLine();
+						String amount_totransfer = in.readLine();
+
+						boolean valid = false;
+						while(!valid){
+							try{
+								int check = Integer.parseInt(amount_totransfer);
+								valid = true;
+							}catch (NumberFormatException ex) {
+								out.println("Invalid input, please try again.\n");
+								out.println("Enter the Amount to transfer:  ");
+								amount_totransfer = in.readLine();
+							}
+						}
 
 						out.println("Please type in the 6-digit authentication number shown in your Google Authenticator App");
 						String authNumber = in.readLine();
 
-						request += "," + account_from + "," + account_to + "," + string_amount + "," + authNumber;
+						request += "," + account_from + "," + account_to + "," + amount_totransfer + "," + authNumber;
 
 						String response = bank.processRequest(customer, request);
 						out.println(response);
@@ -161,7 +185,7 @@ public class NewBankClientHandler extends Thread{
 							out.println(bank.processRequest(customer, "1"));
 
 							// get account to close
-							out.println("Select which account you wish to close:\n");
+							out.println("Select which account you wish to close (Type in the number on the left of the account name):\n");
 							String accountToClose = in.readLine();
 							request += "," + accountToClose;
 
@@ -171,7 +195,7 @@ public class NewBankClientHandler extends Thread{
 							do {
 								clearScreen();
 								out.println(bank.processRequest(customer, "1"));
-								out.println("Select which account you wish to transfer the remaining funds to:\n");
+								out.println("Select which account you wish to transfer the remaining funds to (Type in the number on the left of the account name):\n");
 								accountToTransferFundsTo = in.readLine();
 								if (accountToTransferFundsTo.equals(accountToClose)) {
 									out.println("Can't be the same account.\n");
@@ -192,7 +216,23 @@ public class NewBankClientHandler extends Thread{
 						out.println("1. Current Account");  // take account type
 						out.println("2. Savings Account");
 						String accountType = in.readLine();
-						request += "," + accountType;
+
+						out.println("Please select how much do you want to put in to this new account:\n");
+						String amountToAdd = in.readLine();
+
+						boolean valid = false;
+						while(!valid){
+							try{
+								int check = Integer.parseInt(amountToAdd);
+								valid = true;
+							}catch (NumberFormatException ex) {
+								out.println("Invalid input, please try again.\n");
+								out.println("Please select how much do you want to put in to this new account:\n");
+								amountToAdd = in.readLine();
+							}
+						}
+
+						request += "," + accountType + "," + amountToAdd;
 						while (!(accountType.equals("1")) && (!(accountType.equals("2")))) {
 							out.println("Please try again");   // ensure customer's entry is valid
 						}
@@ -222,7 +262,7 @@ public class NewBankClientHandler extends Thread{
 							out.println(response);
 						}
 						// get id of transfer to be cancelled
-						out.println("Enter number of transaction you wish to cancel (type 0 if there are no scheduled actions):");
+						out.println("Enter number of transaction you wish to cancel:");
 						String cancelTransaction = in.readLine();
 						request = "7" + "," + cancelTransaction + "," + authNumber;
 
@@ -277,8 +317,7 @@ public class NewBankClientHandler extends Thread{
 								// 3. Accept Loan
 								clearScreen();
 								request = "MICROLOAN-3A";
-								out.println("Please select which loan you would like to provide money for by entering" +
-										" the ID");
+								out.println("Please select which loan you would like to provide money for by entering the ID.");
 								// Display selectable loans
 								Boolean validInput = false;
 								String response = bank.processRequest(customer, request);
@@ -354,8 +393,7 @@ public class NewBankClientHandler extends Thread{
 									}
 								}
 								// Confirm amount
-								out.println("Please enter the amount you would like to repay (Up to total amount " +
-										"outstanding):");
+								out.println("Please enter the amount you would like to repay (Up to total amount outstanding: ");
 								String repayAmount = "";
 								Boolean validated = false;
 								while (!validated){
@@ -411,10 +449,10 @@ public class NewBankClientHandler extends Thread{
 	showMenu() {
 		return "Please choose from the options below: \n\n" +
 				"1. Show My Accounts\n" +
-				"3. Transfer to another user\n" +
-				"4. Transfer to another owned account\n" +
-				"5. Create New Account\n" +
-				"5a. Close an Account\n" +
+				"2. Transfer to another user\n" +
+				"3. Transfer to another owned account\n" +
+				"4. Create New Account\n" +
+				"5. Close an Account\n" +
 				"6. Show scheduled transfers\n" +
 				"7. Cancel a scheduled transfer\n" +
 				"8. Log out\n" +
