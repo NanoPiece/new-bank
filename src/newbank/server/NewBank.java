@@ -605,7 +605,12 @@ public class NewBank {
 		List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
 		MicroLoan loan = microLoans.get(input.get(1));
 		Double repayAmount = Double.parseDouble(input.get(2));
-		if (loan.getStatus().equals("Active")) {
+
+		if (!loan.getStatus().equals("Active")) {
+			return "This loan is not currently active. Please select an active loan.";
+		} else if (loan.getLenderIBAN().equals(customer.getIBAN())) {
+			return "You cannot repay a loan that you have provided money for.";
+		} else {
 			Customer borrower = customers.get(customer.getIBAN());
 			Customer lender = customers.get(loan.getLenderIBAN());
 			// Validate appropriate amount
@@ -629,8 +634,6 @@ public class NewBank {
 				return "You tried to repay more than the total amount outstanding. Process has not been completed. " +
 						"Please try again.";
 			}
-		} else {
-			return "This loan is not currently active. Please select an active loan.";
 		}
 	}
 
