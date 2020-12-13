@@ -283,7 +283,7 @@ public class NewBank {
 					List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
 					Customer Receiver = bank.getIndex(input.get(2));
 					Double amount = Double.valueOf(input.get(3));
-					Account account = customers.get(customer.getIBAN()).getAccount(input.get(3));
+					Account account = customers.get(customer.getIBAN()).getAccount(input.get(4));
 
 					// build id string
 					Date date= new Date();
