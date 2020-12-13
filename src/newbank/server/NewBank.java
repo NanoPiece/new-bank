@@ -14,7 +14,7 @@ public class NewBank {
 	private static final NewBank bank = new NewBank();
 	public HashMap<String,Customer> customers;
 	public HashMap<String,MicroLoan> microLoans;
-	public int microLoansIndex = 1;
+	public int microLoansIndex = 3;
 
 
 	// scheduler for applying interest
@@ -61,12 +61,12 @@ public class NewBank {
 		customers.put(john2.getIBAN(), john2);
 
 		MicroLoan bhagy1 = new MicroLoan("Bhagy","Buy a new car",
-				5000.0, 3.0, microLoans.size()+1);
+				5000.0, 3.0, microLoans.size()+1, bhagy.getIBAN());
 		customers.get(bhagy.getIBAN()).addMicroLoanID(bhagy1.getLoanID());
 		microLoans.put(Integer.toString(bhagy1.getLoanID()),bhagy1);
 
 		MicroLoan bhagy2 = new MicroLoan("Bhagy","Buy Playstation 5",
-				1200.0, 5.0, microLoans.size()+1);
+				1200.0, 5.0, microLoans.size()+1, bhagy.getIBAN());
 		customers.get(bhagy.getIBAN()).addMicroLoanID(bhagy2.getLoanID());
 		microLoans.put(Integer.toString(bhagy2.getLoanID()),bhagy2);
 	}
@@ -502,7 +502,8 @@ public class NewBank {
 		// index: 0 = requestCommand, 1 = Description, 2 = Loan Amount, 3 = interest rate
 		List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
 		MicroLoan newLoan = new MicroLoan(customer.getName(), input.get(1),
-				Double.parseDouble(input.get(2)), Double.parseDouble(input.get(3)), microLoansIndex);
+				Double.parseDouble(input.get(2)), Double.parseDouble(input.get(3)), microLoansIndex,
+				customer.getIBAN());
 		customers.get(customer.getIBAN()).addMicroLoanID(newLoan.getLoanID());
 		microLoans.put(Integer.toString(newLoan.getLoanID()),newLoan);
 		microLoansIndex += 1;
@@ -524,7 +525,7 @@ public class NewBank {
 		output += "\n";
 		// Entries
 		for (Map.Entry<String, MicroLoan> entry : microLoans.entrySet() ) {
-			if (entry.getValue().getLenderID() == null && !entry.getValue().getBorrowerID().equals(customer.getIBAN())) {
+			if (entry.getValue().getLenderID() == null && !entry.getValue().getBorrowerIBAN().equals(customer.getIBAN())){
 				MicroLoan loan = entry.getValue();
 				output += Integer.toString(loan.getLoanID());
 				output += emptySpaceNeedForMicroLoanDashboard("ID", Integer.toString(loan.getLoanID()),
@@ -561,13 +562,14 @@ public class NewBank {
 		List<String> input = Arrays.asList(request.split("\\s*,\\s*"));
 		// Edit microloan details
 		MicroLoan loan = microLoans.get(input.get(1));
-		loan.setLenderID(customer.getIBAN());
+		loan.setLenderIBAN(customer.getIBAN());
+		loan.setLenderID(customer.getName());
 		loan.setStatus("Active");
 		// Edit customer detail
 		Customer lender = customers.get(customer.getIBAN());
 		lender.addMicroLoanID(loan.getLoanID());
 		// Complete money transfer
-		Customer borrower = customers.get(loan.getBorrowerID());
+		Customer borrower = customers.get(loan.getBorrowerIBAN());
 		ArrayList<Account> lenderAccounts = lender.getAllAccounts();
 		ArrayList<Account> borrowerAccounts = borrower.getAllAccounts();
 		lender.getAccount(lenderAccounts.get(0).getAccountName()).withdraw(loan.getTotalAmount());
@@ -600,8 +602,8 @@ public class NewBank {
 		MicroLoan loan = microLoans.get(input.get(1));
 		Double repayAmount = Double.parseDouble(input.get(2));
 		if (loan.getStatus().equals("Active")) {
-			Customer borrower = customers.get(customer.getName());
-			Customer lender = customers.get(loan.getLenderID());
+			Customer borrower = customers.get(customer.getIBAN());
+			Customer lender = customers.get(loan.getLenderIBAN());
 			// Validate appropriate amount
 			if (repayAmount <= loan.getOutstandingAmount()) {
 				// Complete money transfer
